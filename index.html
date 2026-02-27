@@ -1,778 +1,599 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoCosto — Punto di Pareggio</title>
+  <title>VoltTool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0e0f11; --surface: #16181c; --surface2: #1e2127; --border: #2a2d35;
-      --fuel: #f5a623; --elec: #4fc3f7; --cross: #a8e6a3; --save: #c084fc;
-      --text: #e8eaf0; --muted: #6b7080; --radius: 12px;
-    }
-    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; font-size: 15px; }
-
-    header { padding: 24px 32px 0; display: flex; align-items: baseline; gap: 12px; }
-    header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
-    header h1 span { color: var(--fuel); }
-    header p { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-
-    .app { display: grid; grid-template-columns: 400px 1fr; gap: 20px; padding: 20px 32px 32px; min-height: calc(100vh - 72px); }
-    @media (max-width: 900px) { .app { grid-template-columns: 1fr; padding: 16px; } header { padding: 20px 16px 0; } }
-
-    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 20px; }
-    .section-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px; }
-    .section-divider { border: none; border-top: 1px solid var(--border); }
-
-    /* GUIDE */
-    .guide-box { border-left: 3px solid var(--fuel); border-radius: 0 8px 8px 0; padding: 10px 14px; background: var(--surface2); }
-    .guide-box p { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
-    .guide-box strong { color: var(--fuel); }
-    .guide-box.elec-accent { border-left-color: var(--elec); }
-    .guide-box.elec-accent strong { color: var(--elec); }
-    .guide-box.free-accent { border-left-color: var(--save); }
-    .guide-box.free-accent strong { color: var(--save); }
-
-    /* MODE BUTTONS */
-    .mode-group { display: flex; flex-direction: column; gap: 6px; }
-    .mode-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; transition: border-color .15s, background .15s; font-family: 'Syne', sans-serif; font-size: 0.82rem; color: var(--text); width: 100%; text-align: left; }
-    .mode-btn .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--border); transition: background .15s; }
-    .mode-btn .mode-icon { margin-left: auto; font-size: 0.78rem; opacity: 0.45; }
-    .mode-btn.active-fuel { border-color: var(--fuel); background: rgba(245,166,35,.08); }
-    .mode-btn.active-fuel .dot { background: var(--fuel); }
-    .mode-btn.active-fuel .mode-icon { opacity: 1; }
-    .mode-btn.active-elec { border-color: var(--elec); background: rgba(79,195,247,.08); }
-    .mode-btn.active-elec .dot { background: var(--elec); }
-    .mode-btn.active-elec .mode-icon { opacity: 1; }
-    .mode-btn.active-free { border-color: var(--save); background: rgba(192,132,252,.08); }
-    .mode-btn.active-free .dot { background: var(--save); }
-    .mode-btn.active-free .mode-icon { opacity: 1; }
-
-    /* SLIDERS */
-    .slider-group { display: flex; flex-direction: column; gap: 14px; }
-    .slider-item { display: flex; flex-direction: column; gap: 5px; }
-    .slider-item.hidden { display: none; }
-    .slider-header { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-    .slider-name { font-size: 0.86rem; font-weight: 600; flex-shrink: 0; display: flex; align-items: center; gap: 7px; }
-    .slider-name.fuel-color    { color: var(--fuel); }
-    .slider-name.elec-color    { color: var(--elec); }
-    .slider-name.neutral-color { color: var(--cross); }
-    .slider-name.save-color    { color: var(--save); }
-    .slider-value-wrap { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-    .slider-value { font-family: 'DM Mono', monospace; font-size: 0.76rem; color: var(--text); white-space: nowrap; }
-    .slider-value.computed { color: var(--cross); background: rgba(168,230,163,.07); border: 1px solid rgba(168,230,163,.2); border-radius: 4px; padding: 2px 6px; }
-    .edit-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.72rem; padding: 2px 5px; border-radius: 4px; transition: color .15s, background .15s; line-height: 1; }
-    .edit-btn:hover { color: var(--text); background: var(--border); }
-    .preset-btn { background: none; border: 1px solid var(--border); cursor: pointer; color: var(--muted); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-family: 'DM Mono', monospace; transition: color .15s, background .15s, border-color .15s; line-height: 1.4; white-space: nowrap; }
-    .preset-btn:hover { color: var(--text); background: var(--surface2); border-color: var(--muted); }
-
-    input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 4px; background: var(--border); outline: none; cursor: pointer; transition: opacity .2s; }
-    input[type=range]:disabled { opacity: .2; cursor: not-allowed; }
-    input[type=range].fuel::-webkit-slider-thumb    { -webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--fuel);  border:2px solid var(--bg); cursor:pointer; }
-    input[type=range].elec::-webkit-slider-thumb    { -webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--elec);  border:2px solid var(--bg); cursor:pointer; }
-    input[type=range].neutral::-webkit-slider-thumb { -webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--cross); border:2px solid var(--bg); cursor:pointer; }
-    input[type=range].save::-webkit-slider-thumb    { -webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--save);  border:2px solid var(--bg); cursor:pointer; }
-    input[type=range].fuel::-webkit-slider-runnable-track    { background:linear-gradient(to right,var(--fuel)  var(--pct,0%),var(--border) var(--pct,0%)); height:4px; border-radius:4px; }
-    input[type=range].elec::-webkit-slider-runnable-track    { background:linear-gradient(to right,var(--elec)  var(--pct,0%),var(--border) var(--pct,0%)); height:4px; border-radius:4px; }
-    input[type=range].neutral::-webkit-slider-runnable-track { background:linear-gradient(to right,var(--cross) var(--pct,0%),var(--border) var(--pct,0%)); height:4px; border-radius:4px; }
-    input[type=range].save::-webkit-slider-runnable-track    { background:linear-gradient(to right,var(--save)  var(--pct,0%),var(--border) var(--pct,0%)); height:4px; border-radius:4px; }
-
-    /* RESULT BOX */
-    .result-box { border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-    .result-box.breakeven { background: rgba(168,230,163,.07); border: 1px solid rgba(168,230,163,.25); }
-    .result-box.free-mode { background: rgba(192,132,252,.07); border: 1px solid rgba(192,132,252,.25); }
-    .rb-label { font-family:'DM Mono',monospace; font-size:.63rem; text-transform:uppercase; letter-spacing:.1em; opacity:.75; margin-bottom:2px; }
-    .rb-label.green  { color: var(--cross); }
-    .rb-label.purple { color: var(--save); }
-    .rb-main { font-family:'DM Mono',monospace; font-size:1.08rem; }
-    .rb-main.green     { color: var(--cross); }
-    .rb-main.elec-save { color: var(--cross); }
-    .rb-main.fuel-save { color: #f87171; }
-    .rb-main.zero      { color: var(--muted); }
-    .rb-divider { border: none; border-top: 1px solid rgba(255,255,255,.06); }
-    .rb-note { font-size:.77rem; color:var(--muted); line-height:1.55; }
-
-    /* CHART PANEL */
-    .chart-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; gap:16px; }
-    .chart-title { font-size:1rem; font-weight:600; }
-    .chart-subtitle { font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted); margin-top:2px; }
-    .chart-container { position:relative; flex:1; min-height:340px; }
-    .chart-placeholder { display:flex; align-items:center; justify-content:center; flex:1; min-height:340px; border:1px dashed var(--border); border-radius:8px; }
-    .chart-placeholder p { font-family:'DM Mono',monospace; font-size:.8rem; color:var(--muted); text-align:center; line-height:1.7; }
-
-    /* MODAL */
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; }
-    .modal-overlay.open { display:flex; }
-    .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px; min-width:280px; max-width:360px; width:90%; display:flex; flex-direction:column; gap:14px; }
-    .modal h3 { font-size:1rem; font-weight:700; }
-    .modal p  { font-size:.8rem; color:var(--muted); line-height:1.5; }
-    .modal input[type=number] { width:100%; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Mono',monospace; font-size:1rem; outline:none; transition:border-color .15s; }
-    .modal input[type=number]:focus { border-color:var(--fuel); }
-    .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
-    .btn { padding:9px 20px; border-radius:8px; border:none; font-family:'Syne',sans-serif; font-size:.85rem; font-weight:600; cursor:pointer; transition:opacity .15s; }
-    .btn-primary   { background:var(--fuel); color:#0e0f11; }
-    .btn-secondary { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
-    .btn:hover { opacity:.82; }
-
-    /* PRESET POPUP */
-    .preset-popup { display:none; position:fixed; z-index:50; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px; gap:8px; box-shadow:0 8px 32px rgba(0,0,0,.5); }
-    .preset-popup.open { display:flex; }
-    .preset-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); cursor:pointer; transition:border-color .15s, background .15s; min-width:80px; }
-    .preset-card:hover { border-color:var(--muted); background:#252830; }
-    .preset-card .pc-icon  { font-size:1.6rem; line-height:1; }
-    .preset-card .pc-label { font-size:.7rem; color:var(--muted); font-family:'DM Mono',monospace; text-align:center; }
-    .preset-card .pc-value { font-size:.78rem; font-weight:700; font-family:'DM Mono',monospace; }
-    .preset-card .pc-value.fuel-color { color:var(--fuel); }
-    .preset-card .pc-value.elec-color { color:var(--elec); }
-    .preset-wrapper { position:relative; display:inline-block; }
-  </style>
 </head>
+
 <body>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h3 id="modal-title"></h3>
-    <p  id="modal-desc"></p>
-    <input type="number" id="modal-input" step="any" />
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="btn-cancel"></button>
-      <button class="btn btn-primary"   id="btn-ok"></button>
-    </div>
-  </div>
-</div>
+  <!-- Nav iniettata da nav.js -->
 
-<!-- PRESET POPUPS -->
-<div class="preset-popup" id="popup-kml">
-  <div class="preset-card" onclick="applyPreset('kml',21)"><span class="pc-icon">🏙️</span><span class="pc-label">Piccola / city</span><span class="pc-value fuel-color">21 km/L</span></div>
-  <div class="preset-card" onclick="applyPreset('kml',17)"><span class="pc-icon">🚗</span><span class="pc-label">Berlina</span><span class="pc-value fuel-color">17 km/L</span></div>
-  <div class="preset-card" onclick="applyPreset('kml',12)"><span class="pc-icon">🏎️</span><span class="pc-label">Sportiva</span><span class="pc-value fuel-color">12 km/L</span></div>
-</div>
-<div class="preset-popup" id="popup-kwh">
-  <div class="preset-card" onclick="applyPreset('kwh',12)"><span class="pc-icon">🏙️</span><span class="pc-label">Città</span><span class="pc-value elec-color">12 kWh/100</span></div>
-  <div class="preset-card" onclick="applyPreset('kwh',16)"><span class="pc-icon">🛣️</span><span class="pc-label">Extraurbana</span><span class="pc-value elec-color">16 kWh/100</span></div>
-  <div class="preset-card" onclick="applyPreset('kwh',20)"><span class="pc-icon">🛤️</span><span class="pc-label">Autostrada</span><span class="pc-value elec-color">20 kWh/100</span></div>
-</div>
-
-<header>
-  <h1>Auto<span>Costo</span></h1>
-  <p>— Punto di pareggio carburante / elettrico</p>
-</header>
-
-<div class="app">
-  <div class="panel">
-
-    <!-- 1. TESTO GUIDA -->
-    <div class="guide-box" id="guide-box"><p id="guide-text"></p></div>
-
-    <!-- 2. KM ANNUI + PREZZI REALI -->
-    <div>
-      <div class="section-label">I tuoi dati di utilizzo</div>
-      <div class="slider-group">
-
-        <div class="slider-item">
-          <div class="slider-header">
-            <span class="slider-name neutral-color">📅 Km / anno</span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="kmanno-display">—</span>
-              <button class="edit-btn" onclick="openModal('kmanno')">✏</button>
-            </div>
-          </div>
-          <input type="range" class="neutral" id="sl-kmanno" min="5000" max="50000" step="1000" value="15000">
-        </div>
-
-        <div class="slider-item">
-          <div class="slider-header">
-            <span class="slider-name save-color">⛽ Carburante alla pompa</span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="real-fuel-display">—</span>
-              <button class="edit-btn" onclick="openModal('realfuel')">✏</button>
-            </div>
-          </div>
-          <input type="range" class="save" id="sl-realfuel" min="0.50" max="3.50" step="0.01" value="1.65">
-        </div>
-
-        <div class="slider-item">
-          <div class="slider-header">
-            <span class="slider-name save-color">🔌 Corrente a casa</span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="real-elec-display">—</span>
-              <button class="edit-btn" onclick="openModal('realelec')">✏</button>
-            </div>
-          </div>
-          <input type="range" class="save" id="sl-realelec" min="0.05" max="0.80" step="0.01" value="0.30">
-        </div>
-
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc"></p>
+      <input type="number" id="modal-input" step="any" />
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-cancel"></button>
+        <button class="btn btn-primary" id="btn-ok"></button>
       </div>
     </div>
+  </div>
 
-    <hr class="section-divider">
+  <!-- PRESET POPUPS -->
+  <div class="preset-popup" id="popup-kml">
+    <div class="preset-card" id="pc-kml-city"> <span class="pc-icon">🏙️</span><span class="pc-label"></span><span
+        class="pc-value fuel-color">21 km/L</span></div>
+    <div class="preset-card" id="pc-kml-mid"> <span class="pc-icon">🚗</span><span class="pc-label"></span><span
+        class="pc-value fuel-color">17 km/L</span></div>
+    <div class="preset-card" id="pc-kml-sport"> <span class="pc-icon">🏎️</span><span class="pc-label"></span><span
+        class="pc-value fuel-color">12 km/L</span></div>
+  </div>
+  <div class="preset-popup" id="popup-kwh">
+    <div class="preset-card" id="pc-kwh-city"> <span class="pc-icon">🏙️</span><span class="pc-label"></span><span
+        class="pc-value elec-color">12 kWh/100</span></div>
+    <div class="preset-card" id="pc-kwh-extra"> <span class="pc-icon">🛣️</span><span class="pc-label"></span><span
+        class="pc-value elec-color">16 kWh/100</span></div>
+    <div class="preset-card" id="pc-kwh-auto"> <span class="pc-icon">🛤️</span><span class="pc-label"></span><span
+        class="pc-value elec-color">20 kWh/100</span></div>
+  </div>
 
-    <!-- 3. CONSUMI -->
-    <div>
-      <div class="section-label">Consumi della tua auto</div>
-      <div class="slider-group">
+  <div class="app">
+    <div class="panel">
 
-        <div class="slider-item">
-          <div class="slider-header">
-            <span class="slider-name fuel-color">
-              ⛽ Carburante
-              <div class="preset-wrapper">
-                <button class="preset-btn" onclick="togglePopup('popup-kml',this)">▾ preset</button>
+      <!-- 1. TESTO GUIDA -->
+      <div class="guide-box" id="guide-box">
+        <p id="guide-text"></p>
+      </div>
+
+      <!-- 2. KM ANNUI + PREZZI REALI -->
+      <div>
+        <div class="section-label" id="sec-usage"></div>
+        <div class="slider-group">
+
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name neutral-color" id="sl-label-kmanno"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="kmanno-display">—</span>
+                <button class="edit-btn" onclick="openModal('kmanno')">✏</button>
               </div>
-            </span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="kml-display">—</span>
-              <button class="edit-btn" onclick="openModal('kml')">✏</button>
             </div>
+            <input type="range" class="neutral" id="sl-kmanno" min="5000" max="50000" step="1000" value="15000">
           </div>
-          <input type="range" class="fuel" id="sl-kml" min="4" max="30" step="0.5" value="17">
-        </div>
 
-        <div class="slider-item">
-          <div class="slider-header">
-            <span class="slider-name elec-color">
-              ⚡ Elettrico
-              <div class="preset-wrapper">
-                <button class="preset-btn" onclick="togglePopup('popup-kwh',this)">▾ preset</button>
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name save-color" id="sl-label-realfuel"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="real-fuel-display">—</span>
+                <button class="edit-btn" onclick="openModal('realfuel')">✏</button>
               </div>
-            </span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="kwh-display">—</span>
-              <button class="edit-btn" onclick="openModal('kwh')">✏</button>
             </div>
+            <input type="range" class="save" id="sl-realfuel" min="0.50" max="3.50" step="0.01" value="1.65">
           </div>
-          <input type="range" class="elec" id="sl-kwh" min="8" max="35" step="0.5" value="16">
-        </div>
 
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name save-color" id="sl-label-realelec"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="real-elec-display">—</span>
+                <button class="edit-btn" onclick="openModal('realelec')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="save" id="sl-realelec" min="0.05" max="0.80" step="0.01" value="0.30">
+          </div>
+
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 3. CONSUMI -->
+      <div>
+        <div class="section-label" id="sec-consumption"></div>
+        <div class="slider-group">
+
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name fuel-color">
+                <span id="sl-label-fuel"></span>
+                <div class="preset-wrapper">
+                  <button class="preset-btn" onclick="togglePopup('popup-kml',this)">▾ preset</button>
+                </div>
+              </span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="kml-display">—</span>
+                <button class="edit-btn" onclick="openModal('kml')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="fuel" id="sl-kml" min="4" max="30" step="0.5" value="17">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name elec-color">
+                <span id="sl-label-elec"></span>
+                <div class="preset-wrapper">
+                  <button class="preset-btn" onclick="togglePopup('popup-kwh',this)">▾ preset</button>
+                </div>
+              </span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="kwh-display">—</span>
+                <button class="edit-btn" onclick="openModal('kwh')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-kwh" min="8" max="35" step="0.5" value="16">
+          </div>
+
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 4. PREZZI BREAKEVEN -->
+      <div id="section-breakeven-prices">
+        <div class="section-label" id="sec-breakeven"></div>
+        <div class="slider-group">
+
+          <div class="slider-item" id="item-pfuel">
+            <div class="slider-header">
+              <span class="slider-name fuel-color" id="sl-label-pfuel"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="price-fuel-display">—</span>
+                <button class="edit-btn" id="edit-pfuel-btn" onclick="openModal('pfuel')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="fuel" id="sl-pfuel" min="0.50" max="3.50" step="0.01" value="1.65">
+          </div>
+
+          <div class="slider-item" id="item-pelec">
+            <div class="slider-header">
+              <span class="slider-name elec-color" id="sl-label-pelec"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="price-elec-display">—</span>
+                <button class="edit-btn" id="edit-pelec-btn" onclick="openModal('pelec')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-pelec" min="0.05" max="0.80" step="0.01" value="0.30">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 5. BOX RISULTATO -->
+      <div class="result-box breakeven" id="result-box">
+        <div class="rb-label green" id="rb-sv-label"></div>
+        <div class="rb-main" id="rb-sv-value">—</div>
+        <div class="rb-note" id="rb-sv-note">—</div>
+        <hr class="rb-divider" id="rb-divider">
+        <div class="rb-label green" id="rb-be-label"></div>
+        <div class="rb-main green" id="rb-be-value">—</div>
+        <div class="rb-note" id="rb-be-note">—</div>
+      </div>
+
+      <!-- 6. MODALITÀ -->
+      <hr class="section-divider">
+      <div>
+        <div class="section-label" id="sec-mode"></div>
+        <div class="mode-group">
+          <button class="mode-btn" id="mode-free" onclick="setMode('free')">
+            <span class="dot"></span><span id="mode-free-label"></span><span class="mode-icon">↔</span>
+          </button>
+          <button class="mode-btn" id="mode-elec" onclick="setMode('elec')">
+            <span class="dot"></span><span id="mode-elec-label"></span><span class="mode-icon">⟳</span>
+          </button>
+          <button class="mode-btn" id="mode-fuel" onclick="setMode('fuel')">
+            <span class="dot"></span><span id="mode-fuel-label"></span><span class="mode-icon">⟳</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-panel">
+      <div>
+        <div class="chart-title" id="chart-title"></div>
+        <div class="chart-subtitle" id="chart-subtitle">—</div>
+      </div>
+      <div class="chart-container" id="chart-container">
+        <canvas id="myChart"></canvas>
+      </div>
+      <div class="chart-placeholder" id="chart-placeholder" style="display:none;">
+        <p id="chart-placeholder-text"></p>
       </div>
     </div>
-
-    <hr class="section-divider">
-
-    <!-- 4. PREZZI BREAKEVEN (nascosti in modalità libera) -->
-    <div id="section-breakeven-prices">
-      <div class="section-label">Prezzo di riferimento per il pareggio</div>
-      <div class="slider-group">
-
-        <!-- Slider €/L: visibile solo in modalità elec (in fuel è calcolato → nascosto) -->
-        <div class="slider-item" id="item-pfuel">
-          <div class="slider-header">
-            <span class="slider-name fuel-color">⛽ €/litro (pareggio)</span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="price-fuel-display">—</span>
-              <button class="edit-btn" id="edit-pfuel-btn" onclick="openModal('pfuel')">✏</button>
-            </div>
-          </div>
-          <input type="range" class="fuel" id="sl-pfuel" min="0.50" max="3.50" step="0.01" value="1.65">
-        </div>
-
-        <!-- Slider €/kWh: visibile solo in modalità fuel (in elec è calcolato → nascosto) -->
-        <div class="slider-item" id="item-pelec">
-          <div class="slider-header">
-            <span class="slider-name elec-color">⚡ €/kWh (pareggio)</span>
-            <div class="slider-value-wrap">
-              <span class="slider-value" id="price-elec-display">—</span>
-              <button class="edit-btn" id="edit-pelec-btn" onclick="openModal('pelec')">✏</button>
-            </div>
-          </div>
-          <input type="range" class="elec" id="sl-pelec" min="0.05" max="0.80" step="0.01" value="0.30">
-        </div>
-
-      </div>
-    </div>
-
-    <!-- 5. BOX RISULTATO: prima risparmio, poi pareggio -->
-    <div class="result-box breakeven" id="result-box">
-
-      <!-- RISPARMIO ANNUO -->
-      <div class="rb-label green" id="rb-sv-label">💶 Risparmio annuo stimato</div>
-      <div class="rb-main" id="rb-sv-value">—</div>
-      <div class="rb-note" id="rb-sv-note">—</div>
-
-      <!-- PAREGGIO (nascosto in free) -->
-      <hr class="rb-divider" id="rb-divider">
-      <div class="rb-label green" id="rb-be-label">⚡ Punto di pareggio</div>
-      <div class="rb-main green"  id="rb-be-value">—</div>
-      <div class="rb-note"        id="rb-be-note">—</div>
-
-    </div>
-
-    <!-- 6. MODALITÀ DI CALCOLO (in fondo) -->
-    <hr class="section-divider">
-    <div>
-      <div class="section-label">Modalità di calcolo</div>
-      <div class="mode-group">
-        <button class="mode-btn" id="mode-free" onclick="setMode('free')">
-          <span class="dot"></span><span>Modalità libera (confronto diretto)</span><span class="mode-icon">↔</span>
-        </button>
-        <button class="mode-btn" id="mode-elec" onclick="setMode('elec')">
-          <span class="dot"></span><span>Calcola prezzo energia (€/kWh)</span><span class="mode-icon">⟳</span>
-        </button>
-        <button class="mode-btn" id="mode-fuel" onclick="setMode('fuel')">
-          <span class="dot"></span><span>Calcola prezzo carburante (€/L)</span><span class="mode-icon">⟳</span>
-        </button>
-      </div>
-    </div>
-
   </div>
 
-  <!-- CHART -->
-  <div class="chart-panel">
-    <div>
-      <div class="chart-title">Costo al km in funzione del prezzo variabile</div>
-      <div class="chart-subtitle" id="chart-subtitle">—</div>
-    </div>
-    <div class="chart-container" id="chart-container">
-      <canvas id="myChart"></canvas>
-    </div>
-    <div class="chart-placeholder" id="chart-placeholder" style="display:none;">
-      <p>In modalità libera entrambi i prezzi variano<br>liberamente — il grafico 2D non è applicabile.<br><br>Il risparmio annuo è calcolato in tempo reale<br>nel pannello a sinistra.</p>
-    </div>
-  </div>
-</div>
+  <!-- i18n deve stare prima di nav.js e del resto -->
+  <script src="i18n.js"></script>
+  <script src="nav.js"></script>
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // Applica testi i18n statici
+    // ═══════════════════════════════════════════════════════════════
+    document.title = t.pageTitle;
+    document.getElementById('sec-usage').textContent = t.secUsage;
+    document.getElementById('sec-consumption').textContent = t.secConsumption;
+    document.getElementById('sec-breakeven').textContent = t.secBreakeven;
+    document.getElementById('sec-mode').textContent = t.secMode;
+    document.getElementById('sl-label-kmanno').textContent = t.slKmAnno;
+    document.getElementById('sl-label-realfuel').textContent = t.slRealFuel;
+    document.getElementById('sl-label-realelec').textContent = t.slRealElec;
+    document.getElementById('sl-label-fuel').textContent = t.slFuel;
+    document.getElementById('sl-label-elec').textContent = t.slElec;
+    document.getElementById('sl-label-pfuel').textContent = t.slPFuel;
+    document.getElementById('sl-label-pelec').textContent = t.slPElec;
+    document.getElementById('rb-sv-label').textContent = t.rbSvLabel;
+    document.getElementById('rb-be-label').textContent = t.rbBeLabel;
+    document.getElementById('mode-free-label').textContent = t.modeFree;
+    document.getElementById('mode-elec-label').textContent = t.modeElec;
+    document.getElementById('mode-fuel-label').textContent = t.modeFuel;
+    document.getElementById('chart-title').textContent = t.chartTitle;
+    document.getElementById('chart-placeholder-text').textContent = t.chartPlaceholder;
+    document.getElementById('btn-ok').textContent = t.btnOk;
+    document.getElementById('btn-cancel').textContent = t.btnCancel;
 
-<script>
-// ═══════════════════════════════════════════════════════════════
-// i18n
-// ═══════════════════════════════════════════════════════════════
-const STRINGS = {
-  it: {
-    guideFree: '<strong>Confronto diretto:</strong> imposta entrambi i prezzi reali che paghi e scopri subito quale motorizzazione conviene di più.',
-    guideElec: '<strong>Imposta il prezzo del carburante</strong> che paghi alla pompa — calcoleremo a quale prezzo dell\'energia le due motorizzazioni si equivalgono.',
-    guideFuel: '<strong>Imposta il prezzo dell\'energia</strong> che paghi a casa — calcoleremo a quale prezzo del carburante le due motorizzazioni si equivalgono.',
-    svLabelFree:      '💶 Risparmio annuo',
-    svLabelBreakeven: '💶 Risparmio annuo con i tuoi prezzi reali',
-    svElecWins: (v) => `Elettrico più conveniente: −${v} €/anno`,
-    svFuelWins: (v) => `Carburante più conveniente: −${v} €/anno`,
-    svZero:     'Costo identico con i prezzi inseriti',
-    svNoteElec: (km, cf, ce, diff) => `${km} km/anno × ${diff} €/km di differenza (carburante ${cf} − elettrico ${ce} €/km)`,
-    svNoteFuel: (km, cf, ce, diff) => `${km} km/anno × ${diff} €/km di differenza (elettrico ${ce} − carburante ${cf} €/km)`,
-    svNoteZero: 'I prezzi reali producono lo stesso costo al km.',
-    beValueElec: (v) => `${v} €/kWh`,
-    beValueFuel: (v) => `${v} €/L`,
-    beNoteElec:  (pFuel, pElec, cpkm) => `Con carburante a ${pFuel} €/L, l'energia deve costare ${pElec} €/kWh per lo stesso costo al km (${cpkm} €/km).`,
-    beNoteFuel:  (pElec, pFuel, cpkm) => `Con energia a ${pElec} €/kWh, il carburante deve costare ${pFuel} €/L per lo stesso costo al km (${cpkm} €/km).`,
-    chartSubElec: (pFuel) => `Asse X: prezzo energia €/kWh — carburante fisso a ${pFuel} €/L`,
-    chartSubFuel: (pElec) => `Asse X: prezzo carburante €/L — energia fissa a ${pElec} €/kWh`,
-    dsLabelFuel: 'Carburante (€/km)', dsLabelElec: 'Elettrico (€/km)', dsLabelParity: 'Pareggio',
-    axisEuroL: '€ / litro', axisEuroKwh: '€ / kWh', axisEuroKmY: '€ / km',
-    unitKml: 'km/L', unitL100: 'L/100km', unitKwhKm: 'kWh/100km', unitKmKwh: 'km/kWh',
-    modalTitleKml:    'Consumo carburante',    modalDescKml:    'Inserisci il consumo in km/L',
-    modalTitleKwh:    'Consumo elettrico',     modalDescKwh:    'Inserisci il consumo in kWh/100km',
-    modalTitlePfuel:  'Prezzo carburante',     modalDescPfuel:  'Inserisci il prezzo di riferimento in €/L',
-    modalTitlePelec:  'Prezzo energia',        modalDescPelec:  'Inserisci il prezzo di riferimento in €/kWh',
-    modalTitleKmanno: 'Km annui',              modalDescKmanno: 'Inserisci i km percorsi ogni anno',
-    modalTitleRFuel:  'Carburante reale',      modalDescRFuel:  'Prezzo reale che paghi alla pompa (€/L)',
-    modalTitleRElec:  'Energia reale',         modalDescRElec:  'Prezzo reale che paghi a casa (€/kWh)',
-    btnOk: 'OK', btnCancel: 'Annulla',
-  },
-  en: {
-    guideFree: '<strong>Direct comparison:</strong> set both real prices you pay and instantly see which option saves you more money.',
-    guideElec: '<strong>Set the fuel price</strong> you pay at the pump — we\'ll calculate at what energy price both options cost the same.',
-    guideFuel: '<strong>Set the energy price</strong> you pay at home — we\'ll calculate at what fuel price both options cost the same.',
-    svLabelFree:      '💶 Annual savings',
-    svLabelBreakeven: '💶 Annual savings with your real prices',
-    svElecWins: (v) => `Electric saves ${v} €/year`,
-    svFuelWins: (v) => `Fuel saves ${v} €/year`,
-    svZero:     'Identical cost with the prices entered',
-    svNoteElec: (km, cf, ce, diff) => `${km} km/year × ${diff} €/km difference (fuel ${cf} − electric ${ce} €/km)`,
-    svNoteFuel: (km, cf, ce, diff) => `${km} km/year × ${diff} €/km difference (electric ${ce} − fuel ${cf} €/km)`,
-    svNoteZero: 'Real prices produce the same cost per km.',
-    beValueElec: (v) => `${v} €/kWh`,
-    beValueFuel: (v) => `${v} €/L`,
-    beNoteElec:  (pFuel, pElec, cpkm) => `With fuel at ${pFuel} €/L, energy must cost ${pElec} €/kWh for the same cost per km (${cpkm} €/km).`,
-    beNoteFuel:  (pElec, pFuel, cpkm) => `With energy at ${pElec} €/kWh, fuel must cost ${pFuel} €/L for the same cost per km (${cpkm} €/km).`,
-    chartSubElec: (pFuel) => `X axis: energy price €/kWh — fuel fixed at ${pFuel} €/L`,
-    chartSubFuel: (pElec) => `X axis: fuel price €/L — energy fixed at ${pElec} €/kWh`,
-    dsLabelFuel: 'Fuel (€/km)', dsLabelElec: 'Electric (€/km)', dsLabelParity: 'Breakeven',
-    axisEuroL: '€ / litre', axisEuroKwh: '€ / kWh', axisEuroKmY: '€ / km',
-    unitKml: 'km/L', unitL100: 'L/100km', unitKwhKm: 'kWh/100km', unitKmKwh: 'km/kWh',
-    modalTitleKml:    'Fuel consumption',    modalDescKml:    'Enter consumption in km/L',
-    modalTitleKwh:    'Electric consumption',modalDescKwh:    'Enter consumption in kWh/100km',
-    modalTitlePfuel:  'Fuel price',          modalDescPfuel:  'Enter reference price in €/L',
-    modalTitlePelec:  'Energy price',        modalDescPelec:  'Enter reference price in €/kWh',
-    modalTitleKmanno: 'Annual km',           modalDescKmanno: 'Enter km driven per year',
-    modalTitleRFuel:  'Real fuel price',     modalDescRFuel:  'Real price you pay at the pump (€/L)',
-    modalTitleRElec:  'Real energy price',   modalDescRElec:  'Real price you pay at home (€/kWh)',
-    btnOk: 'OK', btnCancel: 'Cancel',
-  }
-};
-const lang = (navigator.language || 'it').split('-')[0];
-const t = STRINGS[lang] || STRINGS['it'];
+    // preset labels
+    document.querySelector('#pc-kml-city  .pc-label').textContent = t.presetKmlCity;
+    document.querySelector('#pc-kml-mid   .pc-label').textContent = t.presetKmlMid;
+    document.querySelector('#pc-kml-sport .pc-label').textContent = t.presetKmlSport;
+    document.querySelector('#pc-kwh-city  .pc-label').textContent = t.presetKwhCity;
+    document.querySelector('#pc-kwh-extra .pc-label').textContent = t.presetKwhExtra;
+    document.querySelector('#pc-kwh-auto  .pc-label').textContent = t.presetKwhAuto;
 
-// ═══════════════════════════════════════════════════════════════
-// Intl formatting
-// ═══════════════════════════════════════════════════════════════
-const fmtP3  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits:3, maximumFractionDigits:3 });
-const fmtP1  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits:1, maximumFractionDigits:1 });
-const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits:0 });
+    // preset onclick (collegato ora che t è disponibile)
+    document.getElementById('pc-kml-city').onclick = () => applyPreset('kml', 21);
+    document.getElementById('pc-kml-mid').onclick = () => applyPreset('kml', 17);
+    document.getElementById('pc-kml-sport').onclick = () => applyPreset('kml', 12);
+    document.getElementById('pc-kwh-city').onclick = () => applyPreset('kwh', 12);
+    document.getElementById('pc-kwh-extra').onclick = () => applyPreset('kwh', 16);
+    document.getElementById('pc-kwh-auto').onclick = () => applyPreset('kwh', 20);
 
-// ═══════════════════════════════════════════════════════════════
-// State + localStorage
-// ═══════════════════════════════════════════════════════════════
-const STORAGE_KEY = 'autocosto_v4';
-const defaults = {
-  kml:17, kwh100:16,
-  pFuel:1.65, pElec:0.30,
-  realFuel:1.65, realElec:0.30,
-  kmAnno:15000, mode:'free'
-};
-function loadState() { try { const r=localStorage.getItem(STORAGE_KEY); if(r) return {...defaults,...JSON.parse(r)}; } catch(e){} return {...defaults}; }
-function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){} }
+    // ═══════════════════════════════════════════════════════════════
+    // Intl formatting
+    // ═══════════════════════════════════════════════════════════════
+    const fmtP3 = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    const fmtP1 = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 });
 
-const state = loadState();
-let mode = state.mode;
+    // ═══════════════════════════════════════════════════════════════
+    // State + localStorage
+    // ═══════════════════════════════════════════════════════════════
+    const STORAGE_KEY = 'volttool_v4';
+    const defaults = { kml: 17, kwh100: 16, pFuel: 1.65, pElec: 0.30, realFuel: 1.65, realElec: 0.30, kmAnno: 15000, mode: 'free' };
+    function loadState() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) return { ...defaults, ...JSON.parse(r) }; } catch (e) { } return { ...defaults }; }
+    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { } }
 
-// ═══════════════════════════════════════════════════════════════
-// DOM refs
-// ═══════════════════════════════════════════════════════════════
-const slKml      = document.getElementById('sl-kml');
-const slKwh      = document.getElementById('sl-kwh');
-const slPFuel    = document.getElementById('sl-pfuel');
-const slPElec    = document.getElementById('sl-pelec');
-const slKmAnno   = document.getElementById('sl-kmanno');
-const slRealFuel = document.getElementById('sl-realfuel');
-const slRealElec = document.getElementById('sl-realelec');
+    const state = loadState();
+    let mode = state.mode;
 
-// ═══════════════════════════════════════════════════════════════
-// Chart — range stabile, aggiornato solo su 'change'
-// ═══════════════════════════════════════════════════════════════
-const CHART_STEPS = 120;
-const RANGE_DEFAULTS = { elec:{ xMin:0.05, xMax:0.80 }, fuel:{ xMin:0.50, xMax:3.50 } };
-let chartRange = { xMin:null, xMax:null, axis:null };
+    // ═══════════════════════════════════════════════════════════════
+    // DOM refs
+    // ═══════════════════════════════════════════════════════════════
+    const slKml = document.getElementById('sl-kml');
+    const slKwh = document.getElementById('sl-kwh');
+    const slPFuel = document.getElementById('sl-pfuel');
+    const slPElec = document.getElementById('sl-pelec');
+    const slKmAnno = document.getElementById('sl-kmanno');
+    const slRealFuel = document.getElementById('sl-realfuel');
+    const slRealElec = document.getElementById('sl-realelec');
 
-function getStableRange(breakEven, axis) {
-  // Se cambia asse (cambio modalità) o primo render: reset al default
-  if (chartRange.axis !== axis || chartRange.xMin === null) {
-    chartRange = { ...RANGE_DEFAULTS[axis], axis };
-  }
-  // Espandi solo se il pareggio è troppo vicino ai bordi (< 15% di margine)
-  const span = chartRange.xMax - chartRange.xMin;
-  if (breakEven < chartRange.xMin + span * 0.15) {
-    chartRange.xMin = Math.max(0.001, breakEven - span * 0.4);
-  }
-  if (breakEven > chartRange.xMax - span * 0.15) {
-    chartRange.xMax = breakEven + span * 0.4;
-  }
-  return { xMin: chartRange.xMin, xMax: chartRange.xMax, step: (chartRange.xMax - chartRange.xMin) / CHART_STEPS };
-}
+    // ═══════════════════════════════════════════════════════════════
+    // Chart
+    // ═══════════════════════════════════════════════════════════════
+    const CHART_STEPS = 120;
+    const RANGE_DEFAULTS = { elec: { xMin: 0.05, xMax: 0.80 }, fuel: { xMin: 0.50, xMax: 3.50 } };
+    let chartRange = { xMin: null, xMax: null, axis: null };
 
-function resetChartRange() { chartRange = { xMin:null, xMax:null, axis:null }; }
+    function getStableRange(breakEven, axis) {
+      if (chartRange.axis !== axis || chartRange.xMin === null) chartRange = { ...RANGE_DEFAULTS[axis], axis };
+      const span = chartRange.xMax - chartRange.xMin;
+      if (breakEven < chartRange.xMin + span * 0.15) chartRange.xMin = Math.max(0.001, breakEven - span * 0.4);
+      if (breakEven > chartRange.xMax - span * 0.15) chartRange.xMax = breakEven + span * 0.4;
+      return { xMin: chartRange.xMin, xMax: chartRange.xMax, step: (chartRange.xMax - chartRange.xMin) / CHART_STEPS };
+    }
+    function resetChartRange() { chartRange = { xMin: null, xMax: null, axis: null }; }
 
-const chart = new Chart(document.getElementById('myChart').getContext('2d'), {
-  type: 'line',
-  data: { labels:[], datasets:[] },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    animation: { duration:150 },
-    interaction: { mode:'index', intersect:false },
-    plugins: {
-      legend: { labels:{ color:'#9aa0b0', font:{ family:'DM Mono', size:11 }, boxWidth:12 } },
-      tooltip: {
-        backgroundColor:'#1e2127', borderColor:'#2a2d35', borderWidth:1,
-        titleColor:'#e8eaf0', bodyColor:'#9aa0b0',
-        titleFont:{ family:'DM Mono', size:11 }, bodyFont:{ family:'DM Mono', size:11 },
-        callbacks: { label: c => c.parsed.y != null ? ` ${c.dataset.label}: ${fmtP3.format(c.parsed.y)} €/km` : '' }
+    const chart = new Chart(document.getElementById('myChart').getContext('2d'), {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 150 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#9aa0b0', font: { family: 'DM Mono', size: 11 }, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: '#1e2127', borderColor: '#2a2d35', borderWidth: 1,
+            titleColor: '#e8eaf0', bodyColor: '#9aa0b0',
+            titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'DM Mono', size: 11 },
+            callbacks: { label: c => c.parsed.y != null ? ` ${c.dataset.label}: ${fmtP3.format(c.parsed.y)} €/km` : '' }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#6b7080', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 10 }, grid: { color: '#1e2127' }, title: { display: true, color: '#6b7080', font: { family: 'DM Mono', size: 11 } } },
+          y: { ticks: { color: '#6b7080', font: { family: 'DM Mono', size: 10 }, callback: v => fmtP3.format(v) + ' €' }, grid: { color: '#2a2d35' }, title: { display: true, text: t.axisEuroKmY, color: '#6b7080', font: { family: 'DM Mono', size: 11 } } }
+        }
       }
-    },
-    scales: {
-      x: { ticks:{ color:'#6b7080', font:{ family:'DM Mono', size:10 }, maxTicksLimit:10 }, grid:{ color:'#1e2127' }, title:{ display:true, color:'#6b7080', font:{ family:'DM Mono', size:11 } } },
-      y: { ticks:{ color:'#6b7080', font:{ family:'DM Mono', size:10 }, callback: v => fmtP3.format(v)+' €' }, grid:{ color:'#2a2d35' }, title:{ display:true, text:t.axisEuroKmY, color:'#6b7080', font:{ family:'DM Mono', size:11 } } }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Mode
+    // ═══════════════════════════════════════════════════════════════
+    function setMode(m) {
+      mode = m; state.mode = m;
+      document.getElementById('mode-free').className = 'mode-btn' + (mode === 'free' ? ' active-free' : '');
+      document.getElementById('mode-elec').className = 'mode-btn' + (mode === 'elec' ? ' active-elec' : '');
+      document.getElementById('mode-fuel').className = 'mode-btn' + (mode === 'fuel' ? ' active-fuel' : '');
+
+      const guideBox = document.getElementById('guide-box');
+      const guideText = document.getElementById('guide-text');
+      if (mode === 'free') { guideBox.className = 'guide-box free-accent'; guideText.innerHTML = t.guideFree; }
+      if (mode === 'elec') { guideBox.className = 'guide-box'; guideText.innerHTML = t.guideElec; }
+      if (mode === 'fuel') { guideBox.className = 'guide-box elec-accent'; guideText.innerHTML = t.guideFuel; }
+
+      document.getElementById('section-breakeven-prices').style.display = mode === 'free' ? 'none' : '';
+      document.getElementById('item-pfuel').style.display = mode === 'fuel' ? 'none' : '';
+      document.getElementById('item-pelec').style.display = mode === 'elec' ? 'none' : '';
+      document.getElementById('chart-container').style.display = mode === 'free' ? 'none' : '';
+      document.getElementById('chart-placeholder').style.display = mode === 'free' ? 'flex' : 'none';
+
+      const rb = document.getElementById('result-box');
+      rb.className = 'result-box ' + (mode === 'free' ? 'free-mode' : 'breakeven');
+      const beVisible = mode !== 'free';
+      document.getElementById('rb-divider').style.display = beVisible ? '' : 'none';
+      document.getElementById('rb-be-label').style.display = beVisible ? '' : 'none';
+      document.getElementById('rb-be-value').style.display = beVisible ? '' : 'none';
+      document.getElementById('rb-be-note').style.display = beVisible ? '' : 'none';
+
+      const svLabel = document.getElementById('rb-sv-label');
+      svLabel.textContent = mode === 'free' ? t.svLabelFree : t.svLabelBreakeven;
+      svLabel.className = 'rb-label ' + (mode === 'free' ? 'purple' : 'green');
+
+      resetChartRange();
+      updateUI();
+      saveState();
     }
-  }
-});
 
-// ═══════════════════════════════════════════════════════════════
-// Mode
-// ═══════════════════════════════════════════════════════════════
-function setMode(m) {
-  mode = m; state.mode = m;
-
-  document.getElementById('mode-free').className = 'mode-btn' + (mode==='free'?' active-free':'');
-  document.getElementById('mode-elec').className = 'mode-btn' + (mode==='elec'?' active-elec':'');
-  document.getElementById('mode-fuel').className = 'mode-btn' + (mode==='fuel'?' active-fuel':'');
-
-  const guideBox = document.getElementById('guide-box');
-  const guideText = document.getElementById('guide-text');
-  if (mode==='free') { guideBox.className='guide-box free-accent'; guideText.innerHTML=t.guideFree; }
-  if (mode==='elec') { guideBox.className='guide-box';             guideText.innerHTML=t.guideElec; }
-  if (mode==='fuel') { guideBox.className='guide-box elec-accent'; guideText.innerHTML=t.guideFuel; }
-
-  // Sezione prezzi breakeven: nascosta in free
-  document.getElementById('section-breakeven-prices').style.display = mode==='free' ? 'none' : '';
-
-  // In modalità elec: pElec è calcolato → nascondo slider pelec
-  // In modalità fuel: pFuel è calcolato → nascondo slider pfuel
-  document.getElementById('item-pfuel').style.display = mode==='fuel' ? 'none' : '';
-  document.getElementById('item-pelec').style.display = mode==='elec' ? 'none' : '';
-
-  // Grafico
-  document.getElementById('chart-container').style.display   = mode==='free' ? 'none' : '';
-  document.getElementById('chart-placeholder').style.display = mode==='free' ? 'flex' : 'none';
-
-  // Box risultato
-  const rb = document.getElementById('result-box');
-  rb.className = 'result-box ' + (mode==='free' ? 'free-mode' : 'breakeven');
-  const beVisible = mode !== 'free';
-  document.getElementById('rb-divider').style.display  = beVisible ? '' : 'none';
-  document.getElementById('rb-be-label').style.display = beVisible ? '' : 'none';
-  document.getElementById('rb-be-value').style.display = beVisible ? '' : 'none';
-  document.getElementById('rb-be-note').style.display  = beVisible ? '' : 'none';
-
-  const svLabel = document.getElementById('rb-sv-label');
-  svLabel.textContent = mode==='free' ? t.svLabelFree : t.svLabelBreakeven;
-  svLabel.className   = 'rb-label ' + (mode==='free' ? 'purple' : 'green');
-
-  resetChartRange();
-  updateUI();
-  saveState();
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Slider fill
-// ═══════════════════════════════════════════════════════════════
-function updateTrack(el) {
-  const item = el.closest('.slider-item');
-  if (item && item.style.display === 'none') return;
-  const pct = (parseFloat(el.value) - parseFloat(el.min)) / (parseFloat(el.max) - parseFloat(el.min)) * 100;
-  el.style.setProperty('--pct', pct + '%');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// updateUI  — aggiorna testo e prezzi (su 'input', in tempo reale)
-// updateChart — aggiorna il grafico (solo su 'change' o cambio modo)
-// ═══════════════════════════════════════════════════════════════
-function updateUI() {
-  state.kml      = parseFloat(slKml.value);
-  state.kwh100   = parseFloat(slKwh.value);
-  state.kmAnno   = parseFloat(slKmAnno.value);
-  state.realFuel = parseFloat(slRealFuel.value);
-  state.realElec = parseFloat(slRealElec.value);
-
-  if (mode === 'elec') {
-    state.pFuel = parseFloat(slPFuel.value);
-    state.pElec = state.pFuel / (state.kml * (state.kwh100 / 100));
-  } else if (mode === 'fuel') {
-    state.pElec = parseFloat(slPElec.value);
-    state.pFuel = (state.kwh100 / 100) * state.pElec * state.kml;
-  }
-
-  [slKml, slKwh, slPFuel, slPElec, slKmAnno, slRealFuel, slRealElec].forEach(updateTrack);
-
-  // Consumi
-  document.getElementById('kml-display').textContent =
-    `${fmtP1.format(state.kml)} ${t.unitKml} | ${fmtP1.format(100/state.kml)} ${t.unitL100}`;
-  document.getElementById('kwh-display').textContent =
-    `${fmtP1.format(state.kwh100)} ${t.unitKwhKm} | ${fmtP1.format(100/state.kwh100)} ${t.unitKmKwh}`;
-
-  // Prezzi reali
-  document.getElementById('real-fuel-display').textContent = fmtP3.format(state.realFuel) + ' €';
-  document.getElementById('real-elec-display').textContent = fmtP3.format(state.realElec) + ' €';
-  document.getElementById('kmanno-display').textContent    = fmtInt.format(state.kmAnno) + ' km';
-
-  // Prezzi breakeven display
-  if (mode !== 'free') {
-    const fuelDisp = document.getElementById('price-fuel-display');
-    const elecDisp = document.getElementById('price-elec-display');
-    fuelDisp.textContent = fmtP3.format(state.pFuel) + ' €';
-    elecDisp.textContent = fmtP3.format(state.pElec) + ' €';
-    fuelDisp.className = 'slider-value' + (mode==='fuel' ? ' computed' : '');
-    elecDisp.className = 'slider-value' + (mode==='elec' ? ' computed' : '');
-  }
-
-  // Risparmio annuo — sempre con prezzi REALI
-  const cpkmRealFuel = (1 / state.kml) * state.realFuel;
-  const cpkmRealElec = (state.kwh100 / 100) * state.realElec;
-  const diffPerKm    = cpkmRealFuel - cpkmRealElec; // >0 = elettrico conviene
-  const risparmio    = diffPerKm * state.kmAnno;
-  const absRisp      = Math.abs(risparmio);
-  const svEl         = document.getElementById('rb-sv-value');
-  const kmF          = fmtInt.format(state.kmAnno);
-  const cfF          = fmtP3.format(cpkmRealFuel);
-  const ceF          = fmtP3.format(cpkmRealElec);
-  const diffF        = fmtP3.format(Math.abs(diffPerKm));
-  const rispF        = fmtInt.format(Math.round(absRisp));
-
-  if (Math.abs(risparmio) < 0.50) {
-    svEl.textContent = t.svZero;
-    svEl.className   = 'rb-main zero';
-    document.getElementById('rb-sv-note').textContent = t.svNoteZero;
-  } else if (diffPerKm > 0) {
-    svEl.textContent = t.svElecWins(rispF);
-    svEl.className   = 'rb-main elec-save';
-    document.getElementById('rb-sv-note').textContent = t.svNoteElec(kmF, cfF, ceF, diffF);
-  } else {
-    svEl.textContent = t.svFuelWins(rispF);
-    svEl.className   = 'rb-main fuel-save';
-    document.getElementById('rb-sv-note').textContent = t.svNoteFuel(kmF, cfF, ceF, diffF);
-  }
-
-  // Punto di pareggio
-  if (mode !== 'free') {
-    const cpkm = (1 / state.kml) * state.pFuel;
-    const pFF  = fmtP3.format(state.pFuel);
-    const pEF  = fmtP3.format(state.pElec);
-    const cpkmF= fmtP3.format(cpkm);
-    if (mode === 'elec') {
-      document.getElementById('rb-be-value').textContent = t.beValueElec(pEF);
-      document.getElementById('rb-be-note').textContent  = t.beNoteElec(pFF, pEF, cpkmF);
-    } else {
-      document.getElementById('rb-be-value').textContent = t.beValueFuel(pFF);
-      document.getElementById('rb-be-note').textContent  = t.beNoteFuel(pEF, pFF, cpkmF);
+    // ═══════════════════════════════════════════════════════════════
+    // Slider fill
+    // ═══════════════════════════════════════════════════════════════
+    function updateTrack(el) {
+      const item = el.closest('.slider-item');
+      if (item && item.style.display === 'none') return;
+      const pct = (parseFloat(el.value) - parseFloat(el.min)) / (parseFloat(el.max) - parseFloat(el.min)) * 100;
+      el.style.setProperty('--pct', pct + '%');
     }
-  }
-}
 
-function updateChart() {
-  if (mode === 'free') return;
+    // ═══════════════════════════════════════════════════════════════
+    // updateUI
+    // ═══════════════════════════════════════════════════════════════
+    function updateUI() {
+      state.kml = parseFloat(slKml.value);
+      state.kwh100 = parseFloat(slKwh.value);
+      state.kmAnno = parseFloat(slKmAnno.value);
+      state.realFuel = parseFloat(slRealFuel.value);
+      state.realElec = parseFloat(slRealElec.value);
 
-  const labels=[], fuelLine=[], elecLine=[];
-  let breakEven, axis;
+      if (mode === 'elec') {
+        state.pFuel = parseFloat(slPFuel.value);
+        state.pElec = state.pFuel / (state.kml * (state.kwh100 / 100));
+      } else if (mode === 'fuel') {
+        state.pElec = parseFloat(slPElec.value);
+        state.pFuel = (state.kwh100 / 100) * state.pElec * state.kml;
+      }
 
-  if (mode === 'elec') {
-    axis = 'elec'; breakEven = state.pElec;
-    chart.options.scales.x.title.text = t.axisEuroKwh;
-    document.getElementById('chart-subtitle').textContent = t.chartSubElec(fmtP3.format(state.pFuel));
-    const { xMin, xMax, step } = getStableRange(breakEven, axis);
-    for (let p=xMin; p<=xMax+step*0.01; p+=step) {
-      labels.push(fmtP3.format(p));
-      fuelLine.push((1/state.kml)*state.pFuel);
-      elecLine.push((state.kwh100/100)*p);
+      [slKml, slKwh, slPFuel, slPElec, slKmAnno, slRealFuel, slRealElec].forEach(updateTrack);
+
+      document.getElementById('kml-display').textContent =
+        `${fmtP1.format(state.kml)} ${t.unitKml} | ${fmtP1.format(100 / state.kml)} ${t.unitL100}`;
+      document.getElementById('kwh-display').textContent =
+        `${fmtP1.format(state.kwh100)} ${t.unitKwhKm} | ${fmtP1.format(100 / state.kwh100)} ${t.unitKmKwh}`;
+      document.getElementById('real-fuel-display').textContent = fmtP3.format(state.realFuel) + ' €';
+      document.getElementById('real-elec-display').textContent = fmtP3.format(state.realElec) + ' €';
+      document.getElementById('kmanno-display').textContent = fmtInt.format(state.kmAnno) + ' km';
+
+      if (mode !== 'free') {
+        const fuelDisp = document.getElementById('price-fuel-display');
+        const elecDisp = document.getElementById('price-elec-display');
+        fuelDisp.textContent = fmtP3.format(state.pFuel) + ' €';
+        elecDisp.textContent = fmtP3.format(state.pElec) + ' €';
+        fuelDisp.className = 'slider-value' + (mode === 'fuel' ? ' computed' : '');
+        elecDisp.className = 'slider-value' + (mode === 'elec' ? ' computed' : '');
+      }
+
+      const cpkmRealFuel = (1 / state.kml) * state.realFuel;
+      const cpkmRealElec = (state.kwh100 / 100) * state.realElec;
+      const diffPerKm = cpkmRealFuel - cpkmRealElec;
+      const risparmio = diffPerKm * state.kmAnno;
+      const absRisp = Math.abs(risparmio);
+      const svEl = document.getElementById('rb-sv-value');
+      const kmF = fmtInt.format(state.kmAnno);
+      const cfF = fmtP3.format(cpkmRealFuel);
+      const ceF = fmtP3.format(cpkmRealElec);
+      const diffF = fmtP3.format(Math.abs(diffPerKm));
+      const rispF = fmtInt.format(Math.round(absRisp));
+
+      if (Math.abs(risparmio) < 0.50) {
+        svEl.textContent = t.svZero;
+        svEl.className = 'rb-main zero';
+        document.getElementById('rb-sv-note').textContent = t.svNoteZero;
+      } else if (diffPerKm > 0) {
+        svEl.textContent = t.svElecWins(rispF);
+        svEl.className = 'rb-main elec-save';
+        document.getElementById('rb-sv-note').textContent = t.svNoteElec(kmF, cfF, ceF, diffF);
+      } else {
+        svEl.textContent = t.svFuelWins(rispF);
+        svEl.className = 'rb-main fuel-save';
+        document.getElementById('rb-sv-note').textContent = t.svNoteFuel(kmF, cfF, ceF, diffF);
+      }
+
+      if (mode !== 'free') {
+        const cpkm = (1 / state.kml) * state.pFuel;
+        const pFF = fmtP3.format(state.pFuel);
+        const pEF = fmtP3.format(state.pElec);
+        const cpkmF = fmtP3.format(cpkm);
+        if (mode === 'elec') {
+          document.getElementById('rb-be-value').textContent = t.beValueElec(pEF);
+          document.getElementById('rb-be-note').textContent = t.beNoteElec(pFF, pEF, cpkmF);
+        } else {
+          document.getElementById('rb-be-value').textContent = t.beValueFuel(pFF);
+          document.getElementById('rb-be-note').textContent = t.beNoteFuel(pEF, pFF, cpkmF);
+        }
+      }
     }
-  } else {
-    axis = 'fuel'; breakEven = state.pFuel;
-    chart.options.scales.x.title.text = t.axisEuroL;
-    document.getElementById('chart-subtitle').textContent = t.chartSubFuel(fmtP3.format(state.pElec));
-    const { xMin, xMax, step } = getStableRange(breakEven, axis);
-    for (let p=xMin; p<=xMax+step*0.01; p+=step) {
-      labels.push(fmtP3.format(p));
-      fuelLine.push((1/state.kml)*p);
-      elecLine.push((state.kwh100/100)*state.pElec);
+
+    // ═══════════════════════════════════════════════════════════════
+    // updateChart
+    // ═══════════════════════════════════════════════════════════════
+    function updateChart() {
+      if (mode === 'free') return;
+      const labels = [], fuelLine = [], elecLine = [];
+      let breakEven, axis;
+
+      if (mode === 'elec') {
+        axis = 'elec'; breakEven = state.pElec;
+        chart.options.scales.x.title.text = t.axisEuroKwh;
+        document.getElementById('chart-subtitle').textContent = t.chartSubElec(fmtP3.format(state.pFuel));
+        const { xMin, xMax, step } = getStableRange(breakEven, axis);
+        for (let p = xMin; p <= xMax + step * 0.01; p += step) {
+          labels.push(fmtP3.format(p));
+          fuelLine.push((1 / state.kml) * state.pFuel);
+          elecLine.push((state.kwh100 / 100) * p);
+        }
+      } else {
+        axis = 'fuel'; breakEven = state.pFuel;
+        chart.options.scales.x.title.text = t.axisEuroL;
+        document.getElementById('chart-subtitle').textContent = t.chartSubFuel(fmtP3.format(state.pElec));
+        const { xMin, xMax, step } = getStableRange(breakEven, axis);
+        for (let p = xMin; p <= xMax + step * 0.01; p += step) {
+          labels.push(fmtP3.format(p));
+          fuelLine.push((1 / state.kml) * p);
+          elecLine.push((state.kwh100 / 100) * state.pElec);
+        }
+      }
+
+      const step = (chartRange.xMax - chartRange.xMin) / CHART_STEPS;
+      const ci = Math.max(0, Math.min(labels.length - 1, Math.round((breakEven - chartRange.xMin) / step)));
+
+      chart.data.labels = labels;
+      chart.data.datasets = [
+        {
+          label: t.dsLabelFuel, data: fuelLine, borderColor: '#f5a623', backgroundColor: 'rgba(245,166,35,.06)', borderWidth: 2,
+          pointRadius: fuelLine.map((_, i) => i === ci ? 7 : 0), pointBackgroundColor: '#f5a623', pointBorderColor: '#0e0f11', pointBorderWidth: 2, tension: 0, fill: false
+        },
+        {
+          label: t.dsLabelElec, data: elecLine, borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,.06)', borderWidth: 2,
+          pointRadius: elecLine.map((_, i) => i === ci ? 7 : 0), pointBackgroundColor: '#4fc3f7', pointBorderColor: '#0e0f11', pointBorderWidth: 2, tension: 0, fill: false
+        },
+        {
+          label: t.dsLabelParity, data: fuelLine.map((v, i) => i === ci ? v : null),
+          borderColor: 'transparent', backgroundColor: 'transparent',
+          pointRadius: fuelLine.map((_, i) => i === ci ? 12 : 0), pointStyle: 'star', pointBorderWidth: 0, pointBackgroundColor: '#a8e6a3',
+          fill: false, spanGaps: false
+        }
+      ];
+      chart.update();
     }
-  }
 
-  const step = (chartRange.xMax - chartRange.xMin) / CHART_STEPS;
-  const ci = Math.max(0, Math.min(labels.length-1, Math.round((breakEven - chartRange.xMin) / step)));
-
-  chart.data.labels = labels;
-  chart.data.datasets = [
-    {
-      label:t.dsLabelFuel, data:fuelLine, borderColor:'#f5a623', backgroundColor:'rgba(245,166,35,.06)', borderWidth:2,
-      pointRadius:fuelLine.map((_,i)=>i===ci?7:0), pointBackgroundColor:'#f5a623', pointBorderColor:'#0e0f11', pointBorderWidth:2, tension:0, fill:false,
-    },
-    {
-      label:t.dsLabelElec, data:elecLine, borderColor:'#4fc3f7', backgroundColor:'rgba(79,195,247,.06)', borderWidth:2,
-      pointRadius:elecLine.map((_,i)=>i===ci?7:0), pointBackgroundColor:'#4fc3f7', pointBorderColor:'#0e0f11', pointBorderWidth:2, tension:0, fill:false,
-    },
-    {
-      label:t.dsLabelParity, data:fuelLine.map((v,i)=>i===ci?v:null),
-      borderColor:'transparent', backgroundColor:'transparent',
-      pointRadius:fuelLine.map((_,i)=>i===ci?12:0), pointStyle:'star', pointBorderWidth:0, pointBackgroundColor:'#a8e6a3',
-      fill:false, spanGaps:false,
+    // ═══════════════════════════════════════════════════════════════
+    // Preset popup
+    // ═══════════════════════════════════════════════════════════════
+    let activePopup = null;
+    function togglePopup(popupId, btn) {
+      const popup = document.getElementById(popupId);
+      if (activePopup && activePopup !== popup) activePopup.classList.remove('open');
+      if (popup.classList.contains('open')) { popup.classList.remove('open'); activePopup = null; return; }
+      const rect = btn.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 6) + 'px';
+      popup.style.left = rect.left + 'px';
+      popup.classList.add('open');
+      activePopup = popup;
     }
-  ];
-  chart.update();
-}
+    function applyPreset(field, value) {
+      if (field === 'kml') { state.kml = value; slKml.value = Math.max(4, Math.min(30, value)); }
+      if (field === 'kwh') { state.kwh100 = value; slKwh.value = Math.max(8, Math.min(35, value)); }
+      if (activePopup) { activePopup.classList.remove('open'); activePopup = null; }
+      resetChartRange();
+      updateUI(); updateChart(); saveState();
+    }
+    document.addEventListener('click', e => {
+      if (activePopup && !activePopup.contains(e.target) && !e.target.classList.contains('preset-btn')) {
+        activePopup.classList.remove('open'); activePopup = null;
+      }
+    });
 
-// ═══════════════════════════════════════════════════════════════
-// Preset popup
-// ═══════════════════════════════════════════════════════════════
-let activePopup = null;
-function togglePopup(popupId, btn) {
-  const popup = document.getElementById(popupId);
-  if (activePopup && activePopup !== popup) activePopup.classList.remove('open');
-  if (popup.classList.contains('open')) { popup.classList.remove('open'); activePopup=null; return; }
-  const rect = btn.getBoundingClientRect();
-  popup.style.top  = (rect.bottom + 6) + 'px';
-  popup.style.left = rect.left + 'px';
-  popup.classList.add('open');
-  activePopup = popup;
-}
-function applyPreset(field, value) {
-  if (field==='kml')  { state.kml=value;    slKml.value=Math.max(4,Math.min(30,value)); }
-  if (field==='kwh')  { state.kwh100=value; slKwh.value=Math.max(8,Math.min(35,value)); }
-  if (activePopup)    { activePopup.classList.remove('open'); activePopup=null; }
-  resetChartRange();
-  updateUI(); updateChart(); saveState();
-}
-document.addEventListener('click', e => {
-  if (activePopup && !activePopup.contains(e.target) && !e.target.classList.contains('preset-btn')) {
-    activePopup.classList.remove('open'); activePopup=null;
-  }
-});
+    // ═══════════════════════════════════════════════════════════════
+    // Modal
+    // ═══════════════════════════════════════════════════════════════
+    let modalTarget = null;
+    const modalCfg = {
+      kml: { title: () => t.modalTitleKml, desc: () => t.modalDescKml, min: 1, max: 200, step: 0.1, stateKey: 'kml', slid: () => slKml, slidMin: 4, slidMax: 30 },
+      kwh: { title: () => t.modalTitleKwh, desc: () => t.modalDescKwh, min: 1, max: 200, step: 0.1, stateKey: 'kwh100', slid: () => slKwh, slidMin: 8, slidMax: 35 },
+      pfuel: { title: () => t.modalTitlePfuel, desc: () => t.modalDescPfuel, min: 0.001, max: 50, step: 0.001, stateKey: 'pFuel', slid: () => slPFuel, slidMin: 0.5, slidMax: 3.5 },
+      pelec: { title: () => t.modalTitlePelec, desc: () => t.modalDescPelec, min: 0.001, max: 50, step: 0.001, stateKey: 'pElec', slid: () => slPElec, slidMin: 0.05, slidMax: 0.8 },
+      kmanno: { title: () => t.modalTitleKmanno, desc: () => t.modalDescKmanno, min: 1000, max: 500000, step: 1000, stateKey: 'kmAnno', slid: () => slKmAnno, slidMin: 5000, slidMax: 50000 },
+      realfuel: { title: () => t.modalTitleRFuel, desc: () => t.modalDescRFuel, min: 0.001, max: 50, step: 0.001, stateKey: 'realFuel', slid: () => slRealFuel, slidMin: 0.5, slidMax: 3.5 },
+      realelec: { title: () => t.modalTitleRElec, desc: () => t.modalDescRElec, min: 0.001, max: 50, step: 0.001, stateKey: 'realElec', slid: () => slRealElec, slidMin: 0.05, slidMax: 0.8 },
+    };
+    function openModal(target) {
+      modalTarget = target;
+      const cfg = modalCfg[target];
+      document.getElementById('modal-title').textContent = cfg.title();
+      document.getElementById('modal-desc').textContent = cfg.desc();
+      const inp = document.getElementById('modal-input');
+      inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step; inp.value = state[cfg.stateKey];
+      document.getElementById('modal-overlay').classList.add('open');
+      setTimeout(() => { inp.focus(); inp.select(); }, 60);
+    }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); modalTarget = null; }
+    function confirmModal() {
+      if (!modalTarget) return;
+      const cfg = modalCfg[modalTarget];
+      let val = parseFloat(document.getElementById('modal-input').value);
+      if (isNaN(val)) { closeModal(); return; }
+      val = Math.max(cfg.min, val);
+      state[cfg.stateKey] = val;
+      cfg.slid().value = Math.max(cfg.slidMin, Math.min(cfg.slidMax, val));
+      if (modalTarget === 'kml' || modalTarget === 'kwh') resetChartRange();
+      closeModal(); updateUI(); updateChart(); saveState();
+    }
+    document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('modal-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmModal(); });
+    document.getElementById('btn-ok').addEventListener('click', confirmModal);
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
 
-// ═══════════════════════════════════════════════════════════════
-// Modal
-// ═══════════════════════════════════════════════════════════════
-let modalTarget = null;
-const modalCfg = {
-  kml:      { title:()=>t.modalTitleKml,    desc:()=>t.modalDescKml,    min:1,    max:200,    step:0.1,   stateKey:'kml',      slid:()=>slKml,      slidMin:4,    slidMax:30    },
-  kwh:      { title:()=>t.modalTitleKwh,    desc:()=>t.modalDescKwh,    min:1,    max:200,    step:0.1,   stateKey:'kwh100',   slid:()=>slKwh,      slidMin:8,    slidMax:35    },
-  pfuel:    { title:()=>t.modalTitlePfuel,  desc:()=>t.modalDescPfuel,  min:0.001,max:50,     step:0.001, stateKey:'pFuel',    slid:()=>slPFuel,    slidMin:0.5,  slidMax:3.5   },
-  pelec:    { title:()=>t.modalTitlePelec,  desc:()=>t.modalDescPelec,  min:0.001,max:50,     step:0.001, stateKey:'pElec',    slid:()=>slPElec,    slidMin:0.05, slidMax:0.8   },
-  kmanno:   { title:()=>t.modalTitleKmanno, desc:()=>t.modalDescKmanno, min:1000, max:500000, step:1000,  stateKey:'kmAnno',   slid:()=>slKmAnno,   slidMin:5000, slidMax:50000 },
-  realfuel: { title:()=>t.modalTitleRFuel,  desc:()=>t.modalDescRFuel,  min:0.001,max:50,     step:0.001, stateKey:'realFuel', slid:()=>slRealFuel, slidMin:0.5,  slidMax:3.5   },
-  realelec: { title:()=>t.modalTitleRElec,  desc:()=>t.modalDescRElec,  min:0.001,max:50,     step:0.001, stateKey:'realElec', slid:()=>slRealElec, slidMin:0.05, slidMax:0.8   },
-};
-function openModal(target) {
-  modalTarget=target;
-  const cfg=modalCfg[target];
-  document.getElementById('modal-title').textContent=cfg.title();
-  document.getElementById('modal-desc').textContent=cfg.desc();
-  const inp=document.getElementById('modal-input');
-  inp.min=cfg.min; inp.max=cfg.max; inp.step=cfg.step; inp.value=state[cfg.stateKey];
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(()=>{ inp.focus(); inp.select(); },60);
-}
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); modalTarget=null; }
-function confirmModal() {
-  if (!modalTarget) return;
-  const cfg=modalCfg[modalTarget];
-  let val=parseFloat(document.getElementById('modal-input').value);
-  if (isNaN(val)) { closeModal(); return; }
-  val=Math.max(cfg.min,val);
-  state[cfg.stateKey]=val;
-  cfg.slid().value=Math.max(cfg.slidMin,Math.min(cfg.slidMax,val));
-  if (modalTarget==='kml'||modalTarget==='kwh') resetChartRange();
-  closeModal(); updateUI(); updateChart(); saveState();
-}
-document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
-document.getElementById('modal-input').addEventListener('keydown', e=>{ if(e.key==='Enter') confirmModal(); });
-document.getElementById('btn-ok').addEventListener('click', confirmModal);
-document.getElementById('btn-cancel').addEventListener('click', closeModal);
+    // ═══════════════════════════════════════════════════════════════
+    // Event listeners + Init
+    // ═══════════════════════════════════════════════════════════════
+    [slKml, slKwh, slPFuel, slPElec, slKmAnno, slRealFuel, slRealElec].forEach(sl => {
+      sl.addEventListener('input', updateUI);
+      sl.addEventListener('change', () => { updateChart(); saveState(); });
+    });
+    [slKml, slKwh].forEach(sl => sl.addEventListener('change', resetChartRange));
 
-// ═══════════════════════════════════════════════════════════════
-// Event listeners
-// input  → updateUI (testi, valori) — in tempo reale
-// change → updateChart + saveState — solo al rilascio
-// ═══════════════════════════════════════════════════════════════
-[slKml, slKwh, slPFuel, slPElec, slKmAnno, slRealFuel, slRealElec].forEach(sl => {
-  sl.addEventListener('input', updateUI);
-  sl.addEventListener('change', () => { updateChart(); saveState(); });
-});
-[slKml, slKwh].forEach(sl => sl.addEventListener('change', resetChartRange));
+    slKml.value = Math.max(4, Math.min(30, state.kml));
+    slKwh.value = Math.max(8, Math.min(35, state.kwh100));
+    slPFuel.value = Math.max(0.5, Math.min(3.5, state.pFuel));
+    slPElec.value = Math.max(0.05, Math.min(0.8, state.pElec));
+    slKmAnno.value = Math.max(5000, Math.min(50000, state.kmAnno));
+    slRealFuel.value = Math.max(0.5, Math.min(3.5, state.realFuel));
+    slRealElec.value = Math.max(0.05, Math.min(0.8, state.realElec));
 
-// ═══════════════════════════════════════════════════════════════
-// Init
-// ═══════════════════════════════════════════════════════════════
-document.getElementById('btn-ok').textContent     = t.btnOk;
-document.getElementById('btn-cancel').textContent = t.btnCancel;
-
-slKml.value      = Math.max(4,    Math.min(30,    state.kml));
-slKwh.value      = Math.max(8,    Math.min(35,    state.kwh100));
-slPFuel.value    = Math.max(0.5,  Math.min(3.5,   state.pFuel));
-slPElec.value    = Math.max(0.05, Math.min(0.8,   state.pElec));
-slKmAnno.value   = Math.max(5000, Math.min(50000, state.kmAnno));
-slRealFuel.value = Math.max(0.5,  Math.min(3.5,   state.realFuel));
-slRealElec.value = Math.max(0.05, Math.min(0.8,   state.realElec));
-
-setMode(mode);
-</script>
+    setMode(mode);
+  </script>
 </body>
+
 </html>
