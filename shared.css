@@ -498,6 +498,7 @@ input[type=range].fuel::-webkit-slider-thumb {
   background: var(--fuel);
   border: 2px solid var(--bg);
   cursor: pointer;
+  margin-top: -5.5px;
 }
 
 input[type=range].elec::-webkit-slider-thumb {
@@ -508,6 +509,7 @@ input[type=range].elec::-webkit-slider-thumb {
   background: var(--elec);
   border: 2px solid var(--bg);
   cursor: pointer;
+  margin-top: -5.5px;
 }
 
 input[type=range].neutral::-webkit-slider-thumb {
@@ -518,6 +520,7 @@ input[type=range].neutral::-webkit-slider-thumb {
   background: var(--cross);
   border: 2px solid var(--bg);
   cursor: pointer;
+  margin-top: -5.5px;
 }
 
 input[type=range].save::-webkit-slider-thumb {
@@ -528,6 +531,7 @@ input[type=range].save::-webkit-slider-thumb {
   background: var(--save);
   border: 2px solid var(--bg);
   cursor: pointer;
+  margin-top: -5.5px;
 }
 
 input[type=range].fuel::-webkit-slider-runnable-track {
