@@ -11,7 +11,7 @@ const STRINGS = {
     navBreakeven: 'Viaggio: EV o termica?',
 
     /* guide */
-    guideFree: '<strong>Confronto diretto:</strong> imposta entrambi i prezzi reali che paghi e scopri subito quale motorizzazione conviene di più.',
+    guideFree: '<strong>Confronto diretto:</strong> imposta entrambi i prezzi reali che paghi e scopri quale motorizzazione conviene di più.',
     guideElec: '<strong>Imposta il prezzo del carburante</strong> che paghi alla pompa — calcoleremo a quale prezzo dell\'energia le due motorizzazioni si equivalgono.',
     guideFuel: '<strong>Imposta il prezzo dell\'energia</strong> che paghi a casa — calcoleremo a quale prezzo del carburante le due motorizzazioni si equivalgono.',
 
@@ -55,7 +55,7 @@ const STRINGS = {
 
     /* section labels */
     secUsage: 'I tuoi dati di utilizzo',
-    secConsumption: 'Consumi della tua auto',
+    secConsumption: 'Consumi dell\'auto',
     secBreakeven: 'Prezzo di riferimento per il pareggio',
     secMode: 'Modalità di calcolo',
 
@@ -99,7 +99,7 @@ const STRINGS = {
     navBreakeven: 'Trip: EV or ICE?',
 
     /* guide */
-    guideFree: '<strong>Direct comparison:</strong> set both real prices you pay and instantly see which option saves you more money.',
+    guideFree: '<strong>Direct comparison:</strong> set both real prices you pay and see which option saves you more money.',
     guideElec: '<strong>Set the fuel price</strong> you pay at the pump — we\'ll calculate at what energy price both options cost the same.',
     guideFuel: '<strong>Set the energy price</strong> you pay at home — we\'ll calculate at what fuel price both options cost the same.',
 
@@ -143,7 +143,7 @@ const STRINGS = {
 
     /* section labels */
     secUsage: 'Your usage data',
-    secConsumption: 'Your car\'s consumption',
+    secConsumption: 'Car\'s consumption',
     secBreakeven: 'Reference price for breakeven',
     secMode: 'Calculation mode',
 
