@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltTool — Ricarica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── tipo alimentazione ── */
+    .phase-group {
+      display: flex;
+      gap: 6px;
+    }
+    .phase-btn {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, color .15s;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .phase-btn:hover { border-color: var(--muted); color: var(--text); }
+    .phase-btn.active {
+      border-color: var(--elec);
+      background: rgba(79, 195, 247, .10);
+      color: var(--elec);
+    }
+    .phase-btn .phase-sub {
+      display: block;
+      font-size: .62rem;
+      opacity: .65;
+    }
+
+    /* ── result box variante elec ── */
+    .result-box.charging {
+      background: rgba(79, 195, 247, .07);
+      border: 1px solid rgba(79, 195, 247, .25);
+    }
+    .rb-label.elec { color: var(--elec); }
+    .rb-main.elec  { color: var(--elec); }
+
+    /* ── accordion ── */
+    .accordion-item { display: flex; flex-direction: column; }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      font-size: 0.82rem;
+      color: var(--muted);
+      user-select: none;
+    }
+    .check-item:hover { border-color: var(--muted); color: var(--text); }
+    .check-item.active {
+      border-color: var(--elec);
+      background: rgba(79, 195, 247, .08);
+      color: var(--text);
+      border-radius: 8px 8px 0 0;
+      border-bottom-color: transparent;
+    }
+    .chk-box {
+      width: 15px; height: 15px;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, background .15s;
+      font-size: 0.65rem;
+      color: transparent;
+    }
+    .check-item.active .chk-box {
+      border-color: var(--elec);
+      background: var(--elec);
+      color: #0e0f11;
+    }
+    .acc-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .28s ease, padding .28s ease;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      background: var(--surface2);
+    }
+    .acc-panel.open { max-height: 700px; padding: 14px; }
+    .acc-panel .slider-group { gap: 14px; }
+
+    /* mini result dentro uso reale */
+    .mini-result {
+      background: rgba(79,195,247,.06);
+      border: 1px solid rgba(79,195,247,.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .mini-result-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .mini-result-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--elec);
+    }
+
+    /* curva note */
+    .curve-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* cap info grafico */
+    .chart-cap-info {
+      font-family: 'DM Mono', monospace;
+      font-size: .68rem;
+      color: var(--muted);
+      text-align: right;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Nav iniettata da nav.js -->
+
+  <!-- MODAL numerica -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc"></p>
+      <input type="number" id="modal-input" step="any" />
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-cancel"></button>
+        <button class="btn btn-primary" id="btn-ok"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="panel">
+
+      <!-- 1. GUIDA -->
+      <div class="guide-box elec-accent" id="guide-box">
+        <p id="guide-text"></p>
+      </div>
+
+      <!-- 2. TIPO DI ALIMENTAZIONE -->
+      <div>
+        <div class="section-label" id="sec-phase"></div>
+        <div class="phase-group">
+          <button class="phase-btn" id="ph-mono" onclick="setPhase('mono')">
+            <span id="ph-mono-label"></span>
+            <span class="phase-sub" id="ph-mono-sub"></span>
+          </button>
+          <button class="phase-btn" id="ph-tri" onclick="setPhase('tri')">
+            <span id="ph-tri-label"></span>
+            <span class="phase-sub" id="ph-tri-sub"></span>
+          </button>
+          <button class="phase-btn" id="ph-dc" onclick="setPhase('dc')">
+            <span id="ph-dc-label"></span>
+            <span class="phase-sub" id="ph-dc-sub"></span>
+          </button>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 3. POTENZA DI RICARICA -->
+      <div>
+        <div class="section-label" id="sec-power"></div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name elec-color" id="sl-label-power"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="power-display">—</span>
+                <button class="edit-btn" onclick="openModal('power')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-power" min="6" max="32" step="1" value="16">
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 4. MODALITÀ -->
+      <div>
+        <div class="section-label" id="sec-mode"></div>
+        <div class="mode-group">
+          <button class="mode-btn" id="mode-time" onclick="setMode('time')">
+            <span class="dot"></span><span id="mode-time-label"></span><span class="mode-icon">⟳</span>
+          </button>
+          <button class="mode-btn" id="mode-kwh" onclick="setMode('kwh')">
+            <span class="dot"></span><span id="mode-kwh-label"></span><span class="mode-icon">⟳</span>
+          </button>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 5. INPUT PRINCIPALE -->
+      <div>
+        <div class="section-label" id="sec-input"></div>
+        <div class="slider-group">
+
+          <div class="slider-item" id="item-time">
+            <div class="slider-header">
+              <span class="slider-name elec-color" id="sl-label-time"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="time-display">—</span>
+                <button class="edit-btn" onclick="openModal('time')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-time" min="5" max="720" step="5" value="60">
+          </div>
+
+          <div class="slider-item" id="item-kwh">
+            <div class="slider-header">
+              <span class="slider-name elec-color" id="sl-label-kwh"></span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="kwh-display">—</span>
+                <button class="edit-btn" onclick="openModal('kwh')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-kwh" min="1" max="100" step="0.5" value="20">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 6. RISULTATO -->
+      <div class="result-box charging" id="result-box">
+        <div class="rb-label elec" id="rb-ch-label"></div>
+        <div class="rb-main elec" id="rb-ch-value">—</div>
+        <div class="rb-note" id="rb-ch-note" style="white-space:pre-line"></div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 7. OPZIONI AGGIUNTIVE -->
+      <div>
+        <div class="section-label" id="sec-options"></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+
+          <!-- Uso reale -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-real" onclick="toggleOption('real')">
+              <span class="chk-box">✓</span>
+              <span id="chk-real-label"></span>
+            </div>
+            <div class="acc-panel" id="panel-real">
+              <div class="slider-group">
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name neutral-color" id="sl-label-capacity"></span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="capacity-display">—</span>
+                      <button class="edit-btn" onclick="openModal('capacity')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="neutral" id="sl-capacity" min="10" max="120" step="1" value="60">
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name neutral-color" id="sl-label-soc-start"></span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="soc-start-display">—</span>
+                    </div>
+                  </div>
+                  <input type="range" class="neutral" id="sl-soc-start" min="0" max="99" step="1" value="20">
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name neutral-color" id="sl-label-soc-end"></span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="soc-end-display">—</span>
+                    </div>
+                  </div>
+                  <input type="range" class="neutral" id="sl-soc-end" min="1" max="100" step="1" value="80">
+                </div>
+
+                <div class="mini-result">
+                  <span class="mini-result-label" id="mini-real-label"></span>
+                  <span class="mini-result-value" id="real-kwh-value">—</span>
+                </div>
+
+                <!-- Curva decrescente: solo DC, dentro uso reale -->
+                <div id="curve-wrapper" style="display:none; flex-direction:column; gap:0;">
+                  <div class="accordion-item">
+                    <div class="check-item" id="chk-curve" onclick="toggleOption('curve')">
+                      <span class="chk-box">✓</span>
+                      <span id="chk-curve-label"></span>
+                    </div>
+                    <div class="acc-panel" id="panel-curve">
+                      <div class="slider-group">
+
+                        <div class="slider-item">
+                          <div class="slider-header">
+                            <span class="slider-name elec-color" id="sl-label-curve-thresh"></span>
+                            <div class="slider-value-wrap">
+                              <span class="slider-value" id="curve-thresh-display">—</span>
+                            </div>
+                          </div>
+                          <input type="range" class="elec" id="sl-curve-thresh" min="50" max="95" step="5" value="80">
+                        </div>
+
+                        <div class="slider-item">
+                          <div class="slider-header">
+                            <span class="slider-name elec-color" id="sl-label-curve-end"></span>
+                            <div class="slider-value-wrap">
+                              <span class="slider-value" id="curve-end-display">—</span>
+                            </div>
+                          </div>
+                          <input type="range" class="elec" id="sl-curve-end" min="5" max="70" step="5" value="30">
+                        </div>
+
+                        <div class="curve-note" id="curve-note-text"></div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Perdita di ricarica -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-loss" onclick="toggleOption('loss')">
+              <span class="chk-box">✓</span>
+              <span id="chk-loss-label"></span>
+            </div>
+            <div class="acc-panel" id="panel-loss">
+              <div class="slider-group">
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name elec-color" id="sl-label-loss"></span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="loss-display">—</span>
+                    </div>
+                  </div>
+                  <input type="range" class="elec" id="sl-loss" min="1" max="10" step="1" value="5">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CHART PANEL -->
+    <div class="chart-panel">
+      <div>
+        <div class="chart-title" id="chart-title"></div>
+        <div class="chart-subtitle" id="chart-subtitle">—</div>
+      </div>
+      <div class="chart-cap-info" id="chart-cap-info" style="display:none;"></div>
+      <div class="chart-container">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="i18n_charging.js"></script>
+  <script src="nav.js"></script>
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // Applica testi i18n statici
+    // ═══════════════════════════════════════════════════════════════
+    document.title = t.pageTitle;
+    document.getElementById('sec-phase').textContent      = tC.secPhase;
+    document.getElementById('sec-power').textContent      = tC.secPower;
+    document.getElementById('sec-mode').textContent       = tC.secMode;
+    document.getElementById('sec-options').textContent    = tC.secOptions;
+    document.getElementById('ph-mono-label').textContent  = tC.phMono;
+    document.getElementById('ph-mono-sub').textContent    = tC.phMonoSub;
+    document.getElementById('ph-tri-label').textContent   = tC.phTri;
+    document.getElementById('ph-tri-sub').textContent     = tC.phTriSub;
+    document.getElementById('ph-dc-label').textContent    = tC.phDc;
+    document.getElementById('ph-dc-sub').textContent      = tC.phDcSub;
+    document.getElementById('mode-time-label').textContent = tC.modeTimeBtn;
+    document.getElementById('mode-kwh-label').textContent  = tC.modeKwhBtn;
+    document.getElementById('sl-label-time').textContent       = tC.slTime;
+    document.getElementById('sl-label-kwh').textContent        = tC.slKwh;
+    document.getElementById('sl-label-capacity').textContent   = tC.slCapacity;
+    document.getElementById('sl-label-soc-start').textContent  = tC.slSocStart;
+    document.getElementById('sl-label-soc-end').textContent    = tC.slSocEnd;
+    document.getElementById('sl-label-loss').textContent       = tC.slLoss;
+    document.getElementById('sl-label-curve-thresh').textContent = tC.slCurveThresh;
+    document.getElementById('sl-label-curve-end').textContent   = tC.slCurveEnd;
+    document.getElementById('chk-real-label').textContent   = tC.chkRealLabel;
+    document.getElementById('chk-curve-label').textContent  = tC.chkCurveLabel;
+    document.getElementById('chk-loss-label').textContent   = tC.chkLossLabel;
+    document.getElementById('mini-real-label').textContent  = tC.miniRealLabel;
+    document.getElementById('chart-title').textContent      = tC.chartTitle;
+    document.getElementById('btn-ok').textContent           = tC.btnOk;
+    document.getElementById('btn-cancel').textContent       = tC.btnCancel;
+
+    // ═══════════════════════════════════════════════════════════════
+    // Intl formatting
+    // ═══════════════════════════════════════════════════════════════
+    const fmtP1  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const fmtP2  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 });
+
+    // ═══════════════════════════════════════════════════════════════
+    // State + localStorage
+    // ═══════════════════════════════════════════════════════════════
+    const STORAGE_KEY = 'volttool_charging_v2';
+    const defaults = {
+      phase: 'mono', amps: 16, powerDc: 50,
+      time: 60, kwh: 20, mode: 'time',
+      optReal: false, optLoss: false, optCurve: false,
+      capacity: 60, socStart: 20, socEnd: 80,
+      loss: 5, curveThresh: 80, curveEnd: 30,
+    };
+    function loadState() {
+      try { const r = localStorage.getItem(STORAGE_KEY); if (r) return { ...defaults, ...JSON.parse(r) }; } catch (e) {}
+      return { ...defaults };
+    }
+    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+    const state = loadState();
+
+    // ═══════════════════════════════════════════════════════════════
+    // DOM refs
+    // ═══════════════════════════════════════════════════════════════
+    const slPower      = document.getElementById('sl-power');
+    const slTime       = document.getElementById('sl-time');
+    const slKwh        = document.getElementById('sl-kwh');
+    const slCapacity   = document.getElementById('sl-capacity');
+    const slSocStart   = document.getElementById('sl-soc-start');
+    const slSocEnd     = document.getElementById('sl-soc-end');
+    const slLoss       = document.getElementById('sl-loss');
+    const slCurveThresh= document.getElementById('sl-curve-thresh');
+    const slCurveEnd   = document.getElementById('sl-curve-end');
+
+    // ═══════════════════════════════════════════════════════════════
+    // Helpers
+    // ═══════════════════════════════════════════════════════════════
+    function kwFromAC(amps, phase) {
+      return phase === 'mono' ? (amps * 230) / 1000 : (amps * 400 * Math.sqrt(3)) / 1000;
+    }
+    function currentPowerKw() {
+      return state.phase === 'dc' ? state.powerDc : kwFromAC(state.amps, state.phase);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Chart
+    // ═══════════════════════════════════════════════════════════════
+    const CHART_POWERS = {
+      mono: [1.84, 3.68, 7.36, 11.04],  // 8A 16A 32A mono + 16A tri
+      tri:  [2.77, 5.54, 11.07, 22.15], // 4A 8A 16A 32A tri
+      dc:   [50, 100, 150, 250],
+    };
+    const COMPARE_COLORS = ['#4a5568', '#6b7280', '#94a3b8', '#a0aec0'];
+    const SELECTED_COLOR = '#4fc3f7';
+
+    const chart = new Chart(document.getElementById('myChart').getContext('2d'), {
+      type: 'line',
+      data: { datasets: [] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 150 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#9aa0b0', font: { family: 'DM Mono', size: 11 }, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: '#1e2127', borderColor: '#2a2d35', borderWidth: 1,
+            titleColor: '#e8eaf0', bodyColor: '#9aa0b0',
+            titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'DM Mono', size: 11 },
+            callbacks: {
+              title: items => tC.fmtMin(items[0].parsed.x),
+              label: c => ` ${c.dataset.label}: ${fmtP2.format(c.parsed.y)} kWh`,
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            ticks: { color: '#6b7080', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 8,
+                     callback: v => tC.fmtMin(v) },
+            grid: { color: '#1e2127' },
+            title: { display: true, text: tC.axisTime, color: '#6b7080', font: { family: 'DM Mono', size: 11 } }
+          },
+          y: {
+            ticks: { color: '#6b7080', font: { family: 'DM Mono', size: 10 } },
+            grid: { color: '#2a2d35' },
+            title: { display: true, text: tC.axisKwh, color: '#6b7080', font: { family: 'DM Mono', size: 11 } },
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Curva di ricarica — simulazione minuto per minuto
+    // ═══════════════════════════════════════════════════════════════
+    function buildCurve(targetKwh, maxKw, useCurve) {
+      const points = [{ x: 0, y: 0 }];
+      let acc = 0, min = 0;
+      while (acc < targetKwh - 1e-9 && min < 2880) {
+        min++;
+        let pwr = maxKw;
+        if (useCurve && state.capacity > 0) {
+          const soc = ((state.socStart / 100) * state.capacity + acc) / state.capacity * 100;
+          if (soc >= state.curveThresh) {
+            const t = Math.min(1, (soc - state.curveThresh) / (100 - state.curveThresh));
+            pwr = maxKw * Math.max(state.curveEnd / 100, 1 - t * (1 - state.curveEnd / 100));
+          }
+        }
+        acc = Math.min(acc + pwr / 60, targetKwh);
+        points.push({ x: min, y: acc });
+      }
+      return points;
+    }
+
+    function sample(pts, max) {
+      max = max || 300;
+      if (pts.length <= max) return pts;
+      const step = Math.ceil(pts.length / max);
+      return pts.filter(function(_, i) { return i % step === 0 || i === pts.length - 1; });
+    }
+
+    function grossKwhForPower(kw) {
+      const lossF = 1 + state.loss / 100;
+      let net;
+      if (state.mode === 'time') {
+        net = kw * (state.time / 60);
+        if (state.optReal) net = Math.min(net, Math.max(0, (state.socEnd - state.socStart) / 100 * state.capacity));
+      } else {
+        net = state.kwh;
+        if (state.optReal) net = Math.min(net, Math.max(0, (state.socEnd - state.socStart) / 100 * state.capacity));
+      }
+      return { net: net, gross: state.optLoss ? net * lossF : net };
+    }
+
+    function ptsForPower(kw) {
+      const g = grossKwhForPower(kw);
+      const useCurve = state.optCurve && state.optReal && state.phase === 'dc';
+      if (useCurve) return buildCurve(g.gross, kw, true);
+      const mins = (g.gross / kw) * 60;
+      return [{ x: 0, y: 0 }, { x: mins, y: g.gross }];
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Slider fill
+    // ═══════════════════════════════════════════════════════════════
+    function updateTrack(el) {
+      const item = el.closest('.slider-item');
+      if (item && item.style.display === 'none') return;
+      const pct = (parseFloat(el.value) - parseFloat(el.min)) / (parseFloat(el.max) - parseFloat(el.min)) * 100;
+      el.style.setProperty('--pct', pct + '%');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // updateUI  — reattivo (ogni input slider)
+    // updateChart — differito (solo su change, via debounce)
+    // ═══════════════════════════════════════════════════════════════
+    function updateUI() {
+      // Leggi slider
+      if (state.phase === 'dc') state.powerDc = parseFloat(slPower.value);
+      else                      state.amps    = parseFloat(slPower.value);
+      if (state.mode === 'time') state.time = parseFloat(slTime.value);
+      if (state.mode === 'kwh')  state.kwh  = parseFloat(slKwh.value);
+      if (state.optReal) {
+        state.capacity = parseFloat(slCapacity.value);
+        state.socStart = parseFloat(slSocStart.value);
+        state.socEnd   = parseFloat(slSocEnd.value);
+        if (state.socEnd <= state.socStart) {
+          state.socEnd = state.socStart + 1;
+          slSocEnd.value = state.socEnd;
+        }
+      }
+      if (state.optLoss)  state.loss        = parseFloat(slLoss.value);
+      if (state.optCurve) {
+        state.curveThresh = parseFloat(slCurveThresh.value);
+        state.curveEnd    = parseFloat(slCurveEnd.value);
+      }
+
+      // Track fill
+      [slPower, slTime, slKwh, slCapacity, slSocStart, slSocEnd,
+       slLoss, slCurveThresh, slCurveEnd].forEach(updateTrack);
+
+      const kw = currentPowerKw();
+
+      // Display potenza
+      document.getElementById('power-display').textContent = state.phase === 'dc'
+        ? fmtP1.format(kw) + ' kW'
+        : fmtInt.format(state.amps) + ' A · ' + fmtP2.format(kw) + ' kW';
+
+      // Display input
+      document.getElementById('time-display').textContent = tC.fmtMin(state.time);
+      document.getElementById('kwh-display').textContent  = fmtP1.format(state.kwh) + ' kWh';
+
+      // Display uso reale
+      if (state.optReal) {
+        document.getElementById('capacity-display').textContent  = fmtP1.format(state.capacity) + ' kWh';
+        document.getElementById('soc-start-display').textContent = fmtInt.format(state.socStart) + '%';
+        document.getElementById('soc-end-display').textContent   = fmtInt.format(state.socEnd) + '%';
+        const delta = Math.max(0, (state.socEnd - state.socStart) / 100 * state.capacity);
+        document.getElementById('real-kwh-value').textContent = fmtP2.format(delta) + ' kWh';
+      }
+      if (state.optLoss)
+        document.getElementById('loss-display').textContent = fmtInt.format(state.loss) + '%';
+      if (state.optCurve) {
+        document.getElementById('curve-thresh-display').textContent = fmtInt.format(state.curveThresh) + '%';
+        document.getElementById('curve-end-display').textContent    = fmtInt.format(state.curveEnd) + '%';
+        document.getElementById('curve-note-text').textContent = tC.curveNote(state.curveThresh, state.curveEnd);
+      }
+
+      // Risultato
+      const kw2 = currentPowerKw();
+      const g = grossKwhForPower(kw2);
+      const useCurve = state.optCurve && state.optReal && state.phase === 'dc';
+      const pts = ptsForPower(kw2);
+      const totalMin = pts[pts.length - 1].x;
+
+      if (state.mode === 'time') {
+        document.getElementById('rb-ch-label').textContent = tC.rbLabelTime;
+        document.getElementById('rb-ch-value').textContent = fmtP2.format(g.net) + ' kWh';
+        let note = tC.rbNoteTime(fmtP2.format(kw2), fmtP2.format(state.time / 60), fmtP2.format(kw2 * state.time / 60));
+        if (state.optLoss) note += '\n' + tC.rbNoteLoss(fmtInt.format(state.loss), fmtP2.format(g.net));
+        if (state.optReal && g.net < kw2 * state.time / 60)
+          note += '\n' + tC.rbNoteSocCap(fmtInt.format(state.socStart), fmtInt.format(state.socEnd));
+        document.getElementById('rb-ch-note').textContent = note;
+      } else {
+        document.getElementById('rb-ch-label').textContent = tC.rbLabelKwh;
+        document.getElementById('rb-ch-value').textContent = tC.fmtMin(totalMin);
+        let note = tC.rbNoteKwh(fmtP2.format(g.gross), fmtP2.format(kw2));
+        if (state.optLoss) note += '\n' + tC.rbNoteLossKwh(fmtP2.format(g.net), fmtInt.format(state.loss), fmtP2.format(g.gross));
+        document.getElementById('rb-ch-note').textContent = note;
+      }
+
+      // Cap info
+      if (state.optReal) {
+        const delta = Math.max(0, (state.socEnd - state.socStart) / 100 * state.capacity);
+        document.getElementById('chart-cap-info').style.display = 'block';
+        document.getElementById('chart-cap-info').textContent =
+          tC.capInfo(fmtInt.format(state.socStart), fmtInt.format(state.socEnd), fmtP2.format(delta));
+      } else {
+        document.getElementById('chart-cap-info').style.display = 'none';
+      }
+    }
+
+    let _chartTimer = null;
+    function scheduleChartUpdate() {
+      clearTimeout(_chartTimer);
+      _chartTimer = setTimeout(updateChart, 300);
+    }
+
+    function updateChart() {
+      const kw = currentPowerKw();
+      const comparePowers = CHART_POWERS[state.phase];
+      const useCurve = state.optCurve && state.optReal && state.phase === 'dc';
+      const tension  = useCurve ? 0.2 : 0;
+      const datasets = [];
+
+      comparePowers.forEach(function(pw, i) {
+        if (Math.abs(pw - kw) < 0.5) return;
+        const pts = sample(ptsForPower(pw));
+        const label = state.phase !== 'dc'
+          ? tC.dsLabelAC(fmtInt.format(Math.round(pw * 1000 / (state.phase === 'mono' ? 230 : 400 * Math.sqrt(3)))), fmtP1.format(pw))
+          : tC.dsLabelDC(fmtInt.format(pw));
+        datasets.push({
+          label: label, data: pts,
+          borderColor: COMPARE_COLORS[i % COMPARE_COLORS.length],
+          backgroundColor: 'transparent',
+          borderWidth: 1.5, borderDash: [5, 4],
+          tension: tension, pointRadius: 0, fill: false,
+        });
+      });
+
+      const selPts  = sample(ptsForPower(kw));
+      const selLabel = state.phase === 'dc'
+        ? tC.dsLabelDC(fmtP1.format(kw))
+        : tC.dsLabelAC(fmtInt.format(state.amps), fmtP2.format(kw));
+
+      datasets.push({
+        label: selLabel, data: selPts,
+        borderColor: SELECTED_COLOR, backgroundColor: 'rgba(79,195,247,.07)',
+        borderWidth: 2.5, tension: tension, fill: true,
+        pointRadius: selPts.map(function(_, i) { return i === selPts.length - 1 ? 6 : 0; }),
+        pointBackgroundColor: SELECTED_COLOR, pointBorderColor: '#0e0f11', pointBorderWidth: 2,
+      });
+
+      chart.data.datasets = datasets;
+
+      const modeStr = state.mode === 'time'
+        ? tC.chartModeTime(tC.fmtMin(state.time))
+        : tC.chartModeKwh(fmtP1.format(state.kwh));
+      document.getElementById('chart-subtitle').textContent =
+        state.phase.toUpperCase() + ' · ' + modeStr;
+
+      chart.update();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Accordion
+    // ═══════════════════════════════════════════════════════════════
+    function applyAccordion(opt, active) {
+      document.getElementById('chk-' + opt).classList.toggle('active', active);
+      document.getElementById('panel-' + opt).classList.toggle('open', active);
+    }
+    function toggleOption(opt) {
+      const key = 'opt' + opt.charAt(0).toUpperCase() + opt.slice(1);
+      state[key] = !state[key];
+      applyAccordion(opt, state[key]);
+      updateUI(); updateChart(); saveState();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Fase
+    // ═══════════════════════════════════════════════════════════════
+    function setPhase(ph) {
+      state.phase = ph;
+      ['mono', 'tri', 'dc'].forEach(function(p) {
+        document.getElementById('ph-' + p).classList.toggle('active', p === ph);
+      });
+      if (ph === 'dc') {
+        slPower.min = 7; slPower.max = 350; slPower.step = 1;
+        slPower.value = Math.max(7, Math.min(350, state.powerDc));
+        document.getElementById('sl-label-power').textContent = tC.slPowerDC;
+        document.getElementById('curve-wrapper').style.display = 'flex';
+      } else {
+        slPower.min = 6; slPower.max = 32; slPower.step = 1;
+        slPower.value = Math.max(6, Math.min(32, state.amps));
+        document.getElementById('sl-label-power').textContent = tC.slPowerAC;
+        document.getElementById('curve-wrapper').style.display = 'none';
+        if (state.optCurve) { state.optCurve = false; applyAccordion('curve', false); }
+      }
+      updateTrack(slPower);
+      updateUI(); updateChart(); saveState();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Modalità
+    // ═══════════════════════════════════════════════════════════════
+    function setMode(m) {
+      state.mode = m;
+      document.getElementById('mode-time').className = 'mode-btn' + (m === 'time' ? ' active-elec' : '');
+      document.getElementById('mode-kwh').className  = 'mode-btn' + (m === 'kwh'  ? ' active-elec' : '');
+      document.getElementById('item-time').style.display = m === 'time' ? '' : 'none';
+      document.getElementById('item-kwh').style.display  = m === 'kwh'  ? '' : 'none';
+      document.getElementById('sec-input').textContent   = m === 'time' ? tC.secInputTime : tC.secInputKwh;
+      document.getElementById('guide-text').innerHTML    = m === 'time' ? tC.guideTime    : tC.guideKwh;
+      updateUI(); updateChart(); saveState();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Modal
+    // ═══════════════════════════════════════════════════════════════
+    let modalTarget = null;
+    const modalCfg = {
+      power: {
+        title: function() { return state.phase === 'dc' ? tC.modalTitlePowerDC : tC.modalTitlePowerAC; },
+        desc:  function() { return state.phase === 'dc' ? tC.modalDescPowerDC  : tC.modalDescPowerAC;  },
+        min: 1, max: 350, step: 1,
+        stateKey: function() { return state.phase === 'dc' ? 'powerDc' : 'amps'; },
+        slid: function() { return slPower; },
+        slidMin: function() { return state.phase === 'dc' ? 7 : 6; },
+        slidMax: function() { return state.phase === 'dc' ? 350 : 32; },
+      },
+      time: {
+        title: function() { return tC.modalTitleTime; }, desc: function() { return tC.modalDescTime; },
+        min: 1, max: 14400, step: 1,
+        stateKey: function() { return 'time'; }, slid: function() { return slTime; }, slidMin: function() { return 5; }, slidMax: function() { return 720; },
+      },
+      kwh: {
+        title: function() { return tC.modalTitleKwh; }, desc: function() { return tC.modalDescKwh; },
+        min: 0.1, max: 300, step: 0.5,
+        stateKey: function() { return 'kwh'; }, slid: function() { return slKwh; }, slidMin: function() { return 1; }, slidMax: function() { return 100; },
+      },
+      capacity: {
+        title: function() { return tC.modalTitleCap; }, desc: function() { return tC.modalDescCap; },
+        min: 5, max: 300, step: 1,
+        stateKey: function() { return 'capacity'; }, slid: function() { return slCapacity; }, slidMin: function() { return 10; }, slidMax: function() { return 120; },
+      },
+    };
+
+    function openModal(target) {
+      modalTarget = target;
+      const cfg = modalCfg[target];
+      document.getElementById('modal-title').textContent = cfg.title();
+      document.getElementById('modal-desc').textContent  = cfg.desc();
+      const inp = document.getElementById('modal-input');
+      inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step;
+      inp.value = state[cfg.stateKey()];
+      document.getElementById('modal-overlay').classList.add('open');
+      setTimeout(function() { inp.focus(); inp.select(); }, 60);
+    }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); modalTarget = null; }
+    function confirmModal() {
+      if (!modalTarget) return;
+      const cfg = modalCfg[modalTarget];
+      let val = parseFloat(document.getElementById('modal-input').value);
+      if (isNaN(val)) { closeModal(); return; }
+      val = Math.max(cfg.min, val);
+      state[cfg.stateKey()] = val;
+      cfg.slid().value = Math.max(cfg.slidMin(), Math.min(cfg.slidMax(), val));
+      closeModal(); updateUI(); updateChart(); saveState();
+    }
+    document.getElementById('modal-overlay').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('modal-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmModal(); });
+    document.getElementById('btn-ok').addEventListener('click', confirmModal);
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+
+    // ═══════════════════════════════════════════════════════════════
+    // Event listeners slider — updateUI su input, chart su change
+    // ═══════════════════════════════════════════════════════════════
+    [slPower, slTime, slKwh, slCapacity, slSocStart, slSocEnd,
+     slLoss, slCurveThresh, slCurveEnd].forEach(function(sl) {
+      sl.addEventListener('input', updateUI);
+      sl.addEventListener('change', function() { updateChart(); saveState(); });
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Init
+    // ═══════════════════════════════════════════════════════════════
+    ['real', 'loss', 'curve'].forEach(function(opt) {
+      const key = 'opt' + opt.charAt(0).toUpperCase() + opt.slice(1);
+      applyAccordion(opt, state[key]);
+    });
+
+    slTime.value        = Math.max(5,   Math.min(720,  state.time));
+    slKwh.value         = Math.max(1,   Math.min(100,  state.kwh));
+    slCapacity.value    = Math.max(10,  Math.min(120,  state.capacity));
+    slSocStart.value    = Math.max(0,   Math.min(99,   state.socStart));
+    slSocEnd.value      = Math.max(1,   Math.min(100,  state.socEnd));
+    slLoss.value        = Math.max(1,   Math.min(10,   state.loss));
+    slCurveThresh.value = Math.max(50,  Math.min(95,   state.curveThresh));
+    slCurveEnd.value    = Math.max(5,   Math.min(70,   state.curveEnd));
+
+    setPhase(state.phase);
+    setMode(state.mode);
+  </script>
+</body>
+
+</html>

@@ -19,13 +19,25 @@ Inserisci i tuoi dati reali e scopri subito quanto risparmi (o spendi in più) o
 - Risultato in €/anno con dettaglio del costo al km per entrambe le motorizzazioni
 
 ### `breakeven.html` — Viaggio: EV o termica?
-Dato il consumo delle due auto, calcola a quale prezzo dell'energia (o del carburante) le due opzioni diventano equivalenti. Utile per rispondere a *"conviene l'elettrico se la corrente sale a X?"*
+Dato il consumo delle due auto, calcola a quale prezzo dell'energia (o del carburante) le due opzioni diventano equivalenti. Utile per rispondere a *"conviene l'elettrico se la corrente la pago X?"*
 
 - Due modalità di calcolo:
   - fissa il prezzo del carburante → calcola il prezzo massimo accettabile dell'energia
   - fissa il prezzo dell'energia → calcola il prezzo minimo a cui il carburante deve salire
 - Grafico interattivo del costo al km in funzione del prezzo variabile
 - Punto di pareggio evidenziato sul grafico
+
+### `breakeven.html` — Ricarica: tempo ed energia?
+Data la potenza di ricarica, calcola l'energia o il tempo necessario alla ricarica.
+
+- Due modalità di calcolo:
+  - tempo → calcola quanti kwh verrebbero erogati dalla colonnina
+  - energia → calcola quanto tempo ci vorrebbe alla colonnina per erogare l'energia desiderata
+- Grafico interattivo con la visualizzazione contemporanea di più potenze di ricarica
+- Funzionalità aggiuntive:
+  - Batteria reale → imposta la capacità della batteria
+  - Curva decresente → stima una curva di ricarica (solo DC)
+  - Perdita di ricarica → stima una perdita di energia
 
 ---
 
@@ -34,6 +46,7 @@ Dato il consumo delle due auto, calcola a quale prezzo dell'energia (o del carbu
 ```
 ├── index.html        # Calcolatore risparmio annuale
 ├── breakeven.html    # Calcolatore punto di pareggio
+├── charging.html     # Calcolatore per la ricarica
 ├── shared.css        # Design system condiviso (variabili, componenti, nav)
 ├── i18n.js           # Stringhe in italiano e inglese (rileva lingua dal browser)
 └── nav.js            # Menu di navigazione con hamburger per mobile

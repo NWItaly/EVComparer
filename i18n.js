@@ -9,12 +9,13 @@ const STRINGS = {
     /* nav */
     navAnnualCost: 'Guidare in elettrico: costo annuale',
     navBreakeven: 'Viaggio: EV o termica?',
+    navCharging: 'Ricarica: tempo ed energia',
 
     /* guide */
     guideFree: '<strong>Confronto diretto:</strong> imposta entrambi i prezzi reali che paghi e scopri quale motorizzazione conviene di più.',
     guideElec: '<strong>Imposta il prezzo del carburante</strong> che paghi alla pompa — calcoleremo a quale prezzo dell\'energia le due motorizzazioni si equivalgono.',
     guideFuel: '<strong>Imposta il prezzo dell\'energia</strong> che paghi a casa — calcoleremo a quale prezzo del carburante le due motorizzazioni si equivalgono.',
-
+    
     /* savings */
     svLabelFree: '💶 Risparmio annuo',
     svLabelBreakeven: '💶 Risparmio annuo con i tuoi prezzi reali',
@@ -93,16 +94,16 @@ const STRINGS = {
 
   en: {
 
-
     /* nav */
     navAnnualCost: 'Driving electric: annual cost',
     navBreakeven: 'Trip: EV or ICE?',
+    navCharging: 'Charging: time and energy',
 
     /* guide */
     guideFree: '<strong>Direct comparison:</strong> set both real prices you pay and see which option saves you more money.',
     guideElec: '<strong>Set the fuel price</strong> you pay at the pump — we\'ll calculate at what energy price both options cost the same.',
     guideFuel: '<strong>Set the energy price</strong> you pay at home — we\'ll calculate at what fuel price both options cost the same.',
-
+    
     /* savings */
     svLabelFree: '💶 Annual savings',
     svLabelBreakeven: '💶 Annual savings with your real prices',
@@ -124,6 +125,7 @@ const STRINGS = {
     chartSubFuel: (pElec) => `X axis: fuel price €/L — energy fixed at ${pElec} €/kWh`,
     dsLabelFuel: 'Fuel (€/km)', dsLabelElec: 'Electric (€/km)', dsLabelParity: 'Breakeven',
     axisEuroL: '€ / litre', axisEuroKwh: '€ / kWh', axisEuroKmY: '€ / km',
+
 
     /* units */
     unitKml: 'km/L', unitL100: 'L/100km', unitKwhKm: 'kWh/100km', unitKmKwh: 'km/kWh',

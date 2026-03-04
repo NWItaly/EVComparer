@@ -11,8 +11,7 @@
   const PAGES = [
     { key: 'navAnnualCost', href: 'index.html', match: /index\.html$|^\/$|^$/ },
     { key: 'navBreakeven', href: 'breakeven.html', match: /breakeven\.html$/ },
-    // Aggiungi qui le nuove pagine:
-    // { key: 'navPage3', href: 'page3.html', match: /page3\.html$/ },
+    { key: 'navCharging', href: 'charging.html', match: /charging\.html$/ },
   ];
 
   /* ── 2. Rileva pagina corrente ──────────────────────────────── */
