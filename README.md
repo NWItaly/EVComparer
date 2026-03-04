@@ -27,7 +27,7 @@ Dato il consumo delle due auto, calcola a quale prezzo dell'energia (o del carbu
 - Grafico interattivo del costo al km in funzione del prezzo variabile
 - Punto di pareggio evidenziato sul grafico
 
-### `breakeven.html` — Ricarica: tempo ed energia?
+### `charging.html` — Ricarica: tempo ed energia?
 Data la potenza di ricarica, calcola l'energia o il tempo necessario alla ricarica.
 
 - Due modalità di calcolo:
