@@ -8,172 +8,7 @@
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/shared.css">
   <script src="assets/js/chart.umd.min.js"></script>
-  <style>
-
-    /* ── result box variante elec ── */
-    .result-box.range {
-      background: rgba(79, 195, 247, .07);
-      border: 1px solid rgba(79, 195, 247, .25);
-    }
-    .rb-label.elec { color: var(--elec); }
-    .rb-main.elec  { color: var(--elec); }
-
-    /* ── result box 3 righe per tipo di percorso ── */
-    .rb-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .rb-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-    .rb-row-label {
-      font-size: .82rem;
-      color: var(--muted);
-    }
-    .rb-row-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 1rem;
-      color: var(--elec);
-      white-space: nowrap;
-    }
-    .rb-row-divider {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,.05);
-    }
-
-    /* ── accordion ── */
-    .accordion-item { display: flex; flex-direction: column; }
-
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      font-size: 0.82rem;
-      color: var(--muted);
-      user-select: none;
-    }
-    .check-item:hover { border-color: var(--muted); color: var(--text); }
-    .check-item.active {
-      border-color: var(--elec);
-      background: rgba(79, 195, 247, .08);
-      color: var(--text);
-      border-radius: 8px 8px 0 0;
-      border-bottom-color: transparent;
-    }
-    .chk-box {
-      width: 15px; height: 15px;
-      border-radius: 4px;
-      border: 2px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color .15s, background .15s;
-      font-size: 0.65rem;
-      color: transparent;
-    }
-    .check-item.active .chk-box {
-      border-color: var(--elec);
-      background: var(--elec);
-      color: #0e0f11;
-    }
-    .acc-panel {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height .28s ease, padding .28s ease;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      background: var(--surface2);
-    }
-    .acc-panel.open { max-height: 400px; padding: 14px; }
-    .acc-panel .slider-group { gap: 14px; }
-
-    /* ── mini result dentro accordion ── */
-    .mini-result {
-      background: rgba(79, 195, 247, .06);
-      border: 1px solid rgba(79, 195, 247, .2);
-      border-radius: 6px;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-    .mini-result-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    .mini-result-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--elec);
-      white-space: nowrap;
-    }
-
-    /* ── soc window note ── */
-    .soc-window-note {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--muted);
-      text-align: center;
-      padding: 2px 0;
-    }
-    .soc-window-note span { color: var(--elec); font-weight: 700; }
-
-    /* ── slider soc ── */
-    input[type=range].soc::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 15px; height: 15px;
-      border-radius: 50%;
-      background: var(--elec);
-      border: 2px solid var(--bg);
-      cursor: pointer;
-      margin-top: -5.5px;
-    }
-    input[type=range].soc::-webkit-slider-runnable-track {
-      background: linear-gradient(to right, var(--elec) var(--pct, 0%), var(--border) var(--pct, 0%));
-      height: 4px;
-      border-radius: 4px;
-    }
-
-    /* ── chart panel ── */
-    .chart-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .chart-title  { font-size: 1rem; font-weight: 600; }
-    .chart-subtitle {
-      font-family: 'DM Mono', monospace;
-      font-size: .7rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .chart-container {
-      position: relative;
-      flex: 1;
-      min-height: 340px;
-    }
-
-  </style>
+  <script src="assets/js/common.js"></script>
 </head>
 
 <body>
@@ -357,7 +192,8 @@
 
         <!-- modalità percorso -->
         <div id="rb-percorso" style="display:none;">
-          <div class="rb-label elec" id="rb-percorso-label" style="margin-bottom:10px;">Autonomia per tipo di percorso</div>
+          <div class="rb-label elec" id="rb-percorso-label" style="margin-bottom:10px;">Autonomia per tipo di percorso
+          </div>
           <div class="rb-rows">
             <div class="rb-row">
               <span class="rb-row-label" id="rb-city-label">🏙️ Città</span>
@@ -384,45 +220,100 @@
       <!-- 6. ACCORDION — Carica attuale e riserva -->
       <div>
         <div class="section-label" id="sec-options">Opzioni</div>
-        <div class="accordion-item">
-          <div class="check-item" id="chk-soc" onclick="toggleOption('soc')">
-            <div class="chk-box">✓</div>
-            <span id="chk-soc-label">Carica attuale e riserva</span>
-          </div>
-          <div class="acc-panel" id="panel-soc">
-            <div class="slider-group">
 
-              <div class="slider-item">
-                <div class="slider-header">
-                  <span class="slider-name elec-color" id="sl-label-soc-start">Carica attuale</span>
-                  <div class="slider-value-wrap">
-                    <span class="slider-value" id="soc-start-display">—</span>
-                    <button class="edit-btn" onclick="openModal('socStart')">✏</button>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+
+          <div class="accordion-item">
+            <div class="check-item" id="chk-soc" onclick="toggleOption('soc')">
+              <div class="chk-box">✓</div>
+              <span id="chk-soc-label">Carica attuale e riserva</span>
+            </div>
+            <div class="acc-panel" id="panel-soc">
+              <div class="slider-group">
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name elec-color" id="sl-label-soc-start">Carica attuale</span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="soc-start-display">—</span>
+                      <button class="edit-btn" onclick="openModal('socStart')">✏</button>
+                    </div>
                   </div>
+                  <input type="range" class="soc" id="sl-soc-start" min="1" max="100" step="1" value="80">
                 </div>
-                <input type="range" class="soc" id="sl-soc-start" min="1" max="100" step="1" value="80">
-              </div>
 
-              <div class="soc-window-note" id="soc-window-note">—</div>
+                <div class="soc-window-note" id="soc-window-note">—</div>
 
-              <div class="slider-item">
-                <div class="slider-header">
-                  <span class="slider-name elec-color" id="sl-label-soc-end">Riserva minima</span>
-                  <div class="slider-value-wrap">
-                    <span class="slider-value" id="soc-end-display">—</span>
-                    <button class="edit-btn" onclick="openModal('socEnd')">✏</button>
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name elec-color" id="sl-label-soc-end">Riserva minima</span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="soc-end-display">—</span>
+                      <button class="edit-btn" onclick="openModal('socEnd')">✏</button>
+                    </div>
                   </div>
+                  <input type="range" class="soc" id="sl-soc-end" min="0" max="50" step="1" value="10">
                 </div>
-                <input type="range" class="soc" id="sl-soc-end" min="0" max="50" step="1" value="10">
-              </div>
 
-              <div class="mini-result">
-                <span class="mini-result-label" id="mini-soc-label">kWh disponibili</span>
-                <span class="mini-result-value" id="soc-kwh-value">—</span>
-              </div>
+                <div class="mini-result">
+                  <span class="mini-result-label" id="mini-soc-label">kWh disponibili</span>
+                  <span class="mini-result-value" id="soc-kwh-value">—</span>
+                </div>
 
+              </div>
             </div>
           </div>
+
+          <!-- ACCORDION — Costo ricarica -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-cost" onclick="toggleOption('cost')">
+              <div class="chk-box">✓</div>
+              <span id="chk-cost-label">Costo ricarica</span>
+            </div>
+            <div class="acc-panel" id="panel-cost">
+              <div class="slider-group">
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name elec-color" id="sl-label-price-elec">💶 Prezzo energia</span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="price-elec-display">—</span>
+                      <button class="edit-btn" onclick="openModal('priceElec')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="elec" id="sl-price-elec" min="0.05" max="1.10" step="0.01" value="0.25">
+                </div>
+
+                <div class="mini-result">
+                  <span class="mini-result-label" id="mini-cost-label">Costo ricarica</span>
+                  <span class="mini-result-value" id="cost-total-value">—</span>
+                </div>
+
+                <!-- righe costo/km per tipo percorso (visibili solo in modalità percorso) -->
+                <div id="cost-percorso-rows" style="display:none;">
+                  <hr class="rb-row-divider" style="margin: 4px 0 10px;">
+                  <div class="rb-rows">
+                    <div class="rb-row">
+                      <span class="rb-row-label" style="font-size:.75rem;">🏙️ Città</span>
+                      <span class="mini-result-value" id="cost-city-km">—</span>
+                    </div>
+                    <hr class="rb-row-divider">
+                    <div class="rb-row">
+                      <span class="rb-row-label" style="font-size:.75rem;">🛣️ Extraurbano</span>
+                      <span class="mini-result-value" id="cost-extra-km">—</span>
+                    </div>
+                    <hr class="rb-row-divider">
+                    <div class="rb-row">
+                      <span class="rb-row-label" style="font-size:.75rem;">🛤️ Autostrada</span>
+                      <span class="mini-result-value" id="cost-auto-km">—</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -450,7 +341,7 @@
     // Applica testi i18n statici
     // ═══════════════════════════════════════════════════════════════
     document.title = t.pageTitle;
-    document.getElementById('btn-ok').textContent     = tR.btnOk;
+    document.getElementById('btn-ok').textContent = tR.btnOk;
     document.getElementById('btn-cancel').textContent = tR.btnCancel;
 
     // Preset battery labels
@@ -464,44 +355,46 @@
     document.querySelector('#pc-kwh-auto  .pc-label').textContent = t.presetKwhAuto;
 
     // Section labels
-    document.getElementById('sec-battery').textContent    = tR.secBattery;
-    document.getElementById('sec-mode').textContent       = tR.secMode;
-    document.getElementById('sec-options').textContent    = tR.secOptions;
+    document.getElementById('sec-battery').textContent = tR.secBattery;
+    document.getElementById('sec-mode').textContent = tR.secMode;
+    document.getElementById('sec-options').textContent = tR.secOptions;
 
     // Mode buttons
-    document.getElementById('mode-medio-label').textContent    = tR.modeMedio;
+    document.getElementById('mode-medio-label').textContent = tR.modeMedio;
     document.getElementById('mode-percorso-label').textContent = tR.modePercorso;
 
     // Slider labels
-    document.getElementById('sl-label-battery').textContent     = tR.slBattery;
-    document.getElementById('sl-label-kwh').textContent         = tR.slKwh;
-    document.getElementById('sl-label-speed-city').textContent  = tR.slSpeedCity;
+    document.getElementById('sl-label-battery').textContent = tR.slBattery;
+    document.getElementById('sl-label-kwh').textContent = tR.slKwh;
+    document.getElementById('sl-label-speed-city').textContent = tR.slSpeedCity;
     document.getElementById('sl-label-speed-extra').textContent = tR.slSpeedExtra;
-    document.getElementById('sl-label-speed-auto').textContent  = tR.slSpeedAuto;
-    document.getElementById('sl-label-soc-start').textContent   = tR.slSocStart;
-    document.getElementById('sl-label-soc-end').textContent     = tR.slSocEnd;
+    document.getElementById('sl-label-speed-auto').textContent = tR.slSpeedAuto;
+    document.getElementById('sl-label-soc-start').textContent = tR.slSocStart;
+    document.getElementById('sl-label-soc-end').textContent = tR.slSocEnd;
+    document.getElementById('sl-label-price-elec').textContent = tR.slPriceElec;
 
-    // Accordion label
+    // Accordion labels
     document.getElementById('chk-soc-label').textContent = tR.chkSocLabel;
+    document.getElementById('chk-cost-label').textContent = tR.chkCostLabel;
 
-    // Mini result
+    // Mini results
     document.getElementById('mini-soc-label').textContent = tR.miniSocLabel;
+    document.getElementById('mini-cost-label').textContent = tR.miniCostLabel;
 
     // Result box labels
-    document.getElementById('rb-medio-label').textContent    = tR.rbMedioLabel;
+    document.getElementById('rb-medio-label').textContent = tR.rbMedioLabel;
     document.getElementById('rb-percorso-label').textContent = tR.rbPercorsoLabel;
-    document.getElementById('rb-city-label').textContent     = tR.rbCityLabel;
-    document.getElementById('rb-extra-label').textContent    = tR.rbExtraLabel;
-    document.getElementById('rb-auto-label').textContent     = tR.rbAutoLabel;
+    document.getElementById('rb-city-label').textContent = tR.rbCityLabel;
+    document.getElementById('rb-extra-label').textContent = tR.rbExtraLabel;
+    document.getElementById('rb-auto-label').textContent = tR.rbAutoLabel;
 
     // Chart
     document.getElementById('chart-title').textContent = tR.chartTitle;
 
     // ═══════════════════════════════════════════════════════════════
-    // Intl formatting
+    // Shared formatters
     // ═══════════════════════════════════════════════════════════════
-    const fmtP1  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 });
+    const { p1: fmtP1, p2: fmtP2, p3: fmtP3, int: fmtInt } = VT.fmt;
 
     // ═══════════════════════════════════════════════════════════════
     // State + localStorage
@@ -517,40 +410,33 @@
       optSoc: false,
       socStart: 80,
       socEnd: 10,
+      optCost: false,
+      priceElec: 0.25,
     };
 
-    function loadState() {
-      try {
-        const r = localStorage.getItem(STORAGE_KEY);
-        if (r) return { ...defaults, ...JSON.parse(r) };
-      } catch (e) {}
-      return { ...defaults };
-    }
-    function saveState() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-    }
-
-    const state = loadState();
+    const state = VT.loadState(STORAGE_KEY, defaults);
+    VT.registerAppState(state, () => {
+      updateUI();
+      updateChart();
+      VT.saveState(STORAGE_KEY, state);
+    });
 
     // ═══════════════════════════════════════════════════════════════
     // DOM refs
     // ═══════════════════════════════════════════════════════════════
-    const slBattery    = document.getElementById('sl-battery');
-    const slKwh        = document.getElementById('sl-kwh');
-    const slSocStart   = document.getElementById('sl-soc-start');
-    const slSocEnd     = document.getElementById('sl-soc-end');
-    const slSpeedCity  = document.getElementById('sl-speed-city');
+    const slBattery = document.getElementById('sl-battery');
+    const slKwh = document.getElementById('sl-kwh');
+    const slSocStart = document.getElementById('sl-soc-start');
+    const slSocEnd = document.getElementById('sl-soc-end');
+    const slSpeedCity = document.getElementById('sl-speed-city');
     const slSpeedExtra = document.getElementById('sl-speed-extra');
-    const slSpeedAuto  = document.getElementById('sl-speed-auto');
+    const slSpeedAuto = document.getElementById('sl-speed-auto');
+    const slPriceElec = document.getElementById('sl-price-elec');
 
     // ═══════════════════════════════════════════════════════════════
-    // Slider fill
+    // Slider fill (shared)
     // ═══════════════════════════════════════════════════════════════
-    function updateTrack(el) {
-      const pct = (parseFloat(el.value) - parseFloat(el.min)) /
-                  (parseFloat(el.max)   - parseFloat(el.min)) * 100;
-      el.style.setProperty('--pct', pct + '%');
-    }
+    // Uses VT.updateTrack(el) from common.js
 
     // ═══════════════════════════════════════════════════════════════
     // Calcoli
@@ -572,13 +458,14 @@
     // updateUI
     // ═══════════════════════════════════════════════════════════════
     function updateUI() {
-      state.battery    = parseFloat(slBattery.value);
-      state.kwh100     = parseFloat(slKwh.value);
-      state.socStart   = parseFloat(slSocStart.value);
-      state.socEnd     = parseFloat(slSocEnd.value);
-      state.speedCity  = parseFloat(slSpeedCity.value);
+      state.battery = parseFloat(slBattery.value);
+      state.kwh100 = parseFloat(slKwh.value);
+      state.socStart = parseFloat(slSocStart.value);
+      state.socEnd = parseFloat(slSocEnd.value);
+      state.speedCity = parseFloat(slSpeedCity.value);
       state.speedExtra = parseFloat(slSpeedExtra.value);
-      state.speedAuto  = parseFloat(slSpeedAuto.value);
+      state.speedAuto = parseFloat(slSpeedAuto.value);
+      state.priceElec = parseFloat(slPriceElec.value);
 
       // Impedisce socEnd >= socStart
       if (state.socEnd >= state.socStart) {
@@ -587,7 +474,7 @@
       }
 
       [slBattery, slKwh, slSocStart, slSocEnd,
-       slSpeedCity, slSpeedExtra, slSpeedAuto].forEach(updateTrack);
+        slSpeedCity, slSpeedExtra, slSpeedAuto, slPriceElec].forEach(VT.updateTrack);
 
       // Display slider values
       document.getElementById('battery-display').textContent =
@@ -604,10 +491,12 @@
         `${fmtP1.format(state.speedExtra)} kWh/100 km`;
       document.getElementById('speed-auto-display').textContent =
         `${fmtP1.format(state.speedAuto)} kWh/100 km`;
+      document.getElementById('price-elec-display').textContent =
+        `${fmtP2.format(state.priceElec)} €/kWh`;
 
       // SOC window
       const windowPct = Math.max(0, state.socStart - state.socEnd);
-      const avKwh     = availableKwh();
+      const avKwh = availableKwh();
       document.getElementById('soc-window-note').innerHTML =
         tR.socWindowNote(fmtInt.format(windowPct), fmtP1.format(avKwh));
       document.getElementById('soc-kwh-value').textContent =
@@ -641,6 +530,24 @@
       document.getElementById('chart-subtitle').textContent = state.optSoc
         ? tR.chartSubSoc(fmtInt.format(state.socStart), fmtInt.format(state.socEnd), fmtP1.format(avKwh))
         : tR.chartSubFull(fmtInt.format(state.battery));
+
+      // Costo ricarica
+      if (state.optCost) {
+        const costoTotale = avKwh * state.priceElec;
+        document.getElementById('cost-total-value').textContent =
+          `${fmtP2.format(costoTotale)} €`;
+
+        const showPercorso = state.mode === 'percorso';
+        document.getElementById('cost-percorso-rows').style.display = showPercorso ? '' : 'none';
+        if (showPercorso) {
+          const cpkmCity = (state.speedCity / 100) * state.priceElec;
+          const cpkmExtra = (state.speedExtra / 100) * state.priceElec;
+          const cpkmAuto = (state.speedAuto / 100) * state.priceElec;
+          document.getElementById('cost-city-km').textContent = `${fmtP2.format(cpkmCity)} €/km`;
+          document.getElementById('cost-extra-km').textContent = `${fmtP2.format(cpkmExtra)} €/km`;
+          document.getElementById('cost-auto-km').textContent = `${fmtP2.format(cpkmAuto)} €/km`;
+        }
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -721,9 +628,9 @@
     function buildLine(kwh100, socFrom, socTo, xMax) {
       const pts = [];
       for (let i = 0; i <= CHART_STEPS; i++) {
-        const km      = (xMax / CHART_STEPS) * i;
+        const km = (xMax / CHART_STEPS) * i;
         const kwhUsed = (kwh100 / 100) * km;
-        const pct     = socFrom - (kwhUsed / state.battery) * 100;
+        const pct = socFrom - (kwhUsed / state.battery) * 100;
         if (pct < socTo - 0.5) break;
         pts.push({ x: km, y: Math.max(socTo, pct) });
       }
@@ -734,8 +641,8 @@
       if (state.mode !== 'percorso') return;
 
       const socFrom = state.optSoc ? state.socStart : 100;
-      const socTo   = state.optSoc ? state.socEnd   : 0;
-      const avKwh   = availableKwh();
+      const socTo = state.optSoc ? state.socEnd : 0;
+      const avKwh = availableKwh();
 
       // xMax = autonomia città (la più lunga, definisce il limite destro del grafico)
       const xMax = (avKwh / state.speedCity) * 100;
@@ -743,7 +650,7 @@
       chart.data.datasets = [
         {
           label: tR.dsCity,
-          data: buildLine(state.speedCity,  socFrom, socTo, xMax),
+          data: buildLine(state.speedCity, socFrom, socTo, xMax),
           borderColor: '#4fc3f7',
           backgroundColor: 'transparent',
           borderWidth: 2, tension: 0, pointRadius: 0, fill: false,
@@ -757,7 +664,7 @@
         },
         {
           label: tR.dsAuto,
-          data: buildLine(state.speedAuto,  socFrom, socTo, xMax),
+          data: buildLine(state.speedAuto, socFrom, socTo, xMax),
           borderColor: '#f5a623',
           backgroundColor: 'transparent',
           borderWidth: 2, tension: 0, pointRadius: 0, fill: false,
@@ -786,11 +693,11 @@
       document.getElementById('mode-percorso').className =
         'mode-btn' + (m === 'percorso' ? ' active-elec' : '');
 
-      document.getElementById('section-medio').style.display    = m === 'medio'    ? '' : 'none';
+      document.getElementById('section-medio').style.display = m === 'medio' ? '' : 'none';
       document.getElementById('section-percorso').style.display = m === 'percorso' ? '' : 'none';
-      document.getElementById('rb-medio').style.display         = m === 'medio'    ? '' : 'none';
-      document.getElementById('rb-percorso').style.display      = m === 'percorso' ? '' : 'none';
-      document.getElementById('chart-panel').style.display      = m === 'percorso' ? '' : 'none';
+      document.getElementById('rb-medio').style.display = m === 'medio' ? '' : 'none';
+      document.getElementById('rb-percorso').style.display = m === 'percorso' ? '' : 'none';
+      document.getElementById('chart-panel').style.display = m === 'percorso' ? '' : 'none';
 
       document.getElementById('guide-text').innerHTML = m === 'medio'
         ? tR.guideMedio
@@ -798,171 +705,142 @@
 
       updateUI();
       updateChart();
-      saveState();
+      VT.saveState(STORAGE_KEY, state);
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Accordion
+    // App state helpers
     // ═══════════════════════════════════════════════════════════════
-    function applyAccordion(opt, active) {
-      document.getElementById('chk-' + opt).classList.toggle('active', active);
-      document.getElementById('panel-' + opt).classList.toggle('open', active);
-    }
-
-    function toggleOption(opt) {
-      const key = 'opt' + opt.charAt(0).toUpperCase() + opt.slice(1);
-      state[key] = !state[key];
-      applyAccordion(opt, state[key]);
-      updateUI();
-      updateChart();
-      saveState();
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // Preset popup
-    // ═══════════════════════════════════════════════════════════════
-    let activePopup = null;
-
-    function togglePopup(popupId, btn) {
-      const popup = document.getElementById(popupId);
-      if (activePopup && activePopup !== popup) activePopup.classList.remove('open');
-      if (popup.classList.contains('open')) {
-        popup.classList.remove('open'); activePopup = null; return;
-      }
-      const rect = btn.getBoundingClientRect();
-      popup.style.top  = (rect.bottom + 6) + 'px';
-      popup.style.left = rect.left + 'px';
-      popup.classList.add('open');
-      activePopup = popup;
-    }
-
-    function applyPreset(field, value) {
+    window.applyPresetHandler = (field, value) => {
       if (field === 'battery') {
-        state.battery   = value;
+        state.battery = value;
         slBattery.value = Math.max(10, Math.min(120, value));
       }
       if (field === 'kwh') {
-        state.kwh100  = value;
-        slKwh.value   = Math.max(8, Math.min(35, value));
+        state.kwh100 = value;
+        slKwh.value = Math.max(8, Math.min(35, value));
       }
-      if (activePopup) { activePopup.classList.remove('open'); activePopup = null; }
-      updateUI(); updateChart(); saveState();
-    }
+      updateUI();
+      updateChart();
+      VT.saveState(STORAGE_KEY, state);
+    };
 
-    document.addEventListener('click', e => {
-      if (activePopup &&
-          !activePopup.contains(e.target) &&
-          !e.target.classList.contains('preset-btn')) {
-        activePopup.classList.remove('open'); activePopup = null;
-      }
-    });
-
-    document.getElementById('pc-bat-40').onclick   = () => applyPreset('battery', 40);
-    document.getElementById('pc-bat-60').onclick   = () => applyPreset('battery', 60);
-    document.getElementById('pc-bat-80').onclick   = () => applyPreset('battery', 80);
-    document.getElementById('pc-kwh-city').onclick  = () => applyPreset('kwh', 12);
+    document.getElementById('pc-bat-40').onclick = () => applyPreset('battery', 40);
+    document.getElementById('pc-bat-60').onclick = () => applyPreset('battery', 60);
+    document.getElementById('pc-bat-80').onclick = () => applyPreset('battery', 80);
+    document.getElementById('pc-kwh-city').onclick = () => applyPreset('kwh', 12);
     document.getElementById('pc-kwh-extra').onclick = () => applyPreset('kwh', 16);
-    document.getElementById('pc-kwh-auto').onclick  = () => applyPreset('kwh', 20);
+    document.getElementById('pc-kwh-auto').onclick = () => applyPreset('kwh', 20);
 
     // ═══════════════════════════════════════════════════════════════
     // Modal
     // ═══════════════════════════════════════════════════════════════
-    let modalTarget = null;
-    const modalCfg = {
+    VT.setModalConfig({
       battery: {
         title: tR.modalTitleBattery, desc: tR.modalDescBattery,
         min: 5, max: 300, step: 1,
-        stateKey: 'battery', slid: () => slBattery, slidMin: 10, slidMax: 120
+        getValue: () => state.battery,
+        onConfirm: (val) => {
+          state.battery = val;
+          slBattery.value = Math.max(10, Math.min(120, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       kwh: {
         title: tR.modalTitleKwh, desc: tR.modalDescKwh,
         min: 1, max: 100, step: 0.1,
-        stateKey: 'kwh100', slid: () => slKwh, slidMin: 8, slidMax: 35
+        getValue: () => state.kwh100,
+        onConfirm: (val) => {
+          state.kwh100 = val;
+          slKwh.value = Math.max(8, Math.min(35, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       socStart: {
         title: tR.modalTitleSocStart, desc: tR.modalDescSocStart,
         min: 1, max: 100, step: 1,
-        stateKey: 'socStart', slid: () => slSocStart, slidMin: 1, slidMax: 100
+        getValue: () => state.socStart,
+        onConfirm: (val) => {
+          state.socStart = val;
+          slSocStart.value = Math.max(1, Math.min(100, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       socEnd: {
         title: tR.modalTitleSocEnd, desc: tR.modalDescSocEnd,
         min: 0, max: 50, step: 1,
-        stateKey: 'socEnd', slid: () => slSocEnd, slidMin: 0, slidMax: 50
+        getValue: () => state.socEnd,
+        onConfirm: (val) => {
+          state.socEnd = val;
+          slSocEnd.value = Math.max(0, Math.min(50, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       speedCity: {
         title: tR.modalTitleSpeedCity, desc: tR.modalDescSpeedCity,
         min: 1, max: 100, step: 0.1,
-        stateKey: 'speedCity', slid: () => slSpeedCity, slidMin: 8, slidMax: 35
+        getValue: () => state.speedCity,
+        onConfirm: (val) => {
+          state.speedCity = val;
+          slSpeedCity.value = Math.max(8, Math.min(35, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       speedExtra: {
         title: tR.modalTitleSpeedExtra, desc: tR.modalDescSpeedExtra,
         min: 1, max: 100, step: 0.1,
-        stateKey: 'speedExtra', slid: () => slSpeedExtra, slidMin: 8, slidMax: 35
+        getValue: () => state.speedExtra,
+        onConfirm: (val) => {
+          state.speedExtra = val;
+          slSpeedExtra.value = Math.max(8, Math.min(35, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       speedAuto: {
         title: tR.modalTitleSpeedAuto, desc: tR.modalDescSpeedAuto,
         min: 1, max: 100, step: 0.1,
-        stateKey: 'speedAuto', slid: () => slSpeedAuto, slidMin: 8, slidMax: 35
+        getValue: () => state.speedAuto,
+        onConfirm: (val) => {
+          state.speedAuto = val;
+          slSpeedAuto.value = Math.max(8, Math.min(35, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
       },
-    };
-
-    function openModal(target) {
-      modalTarget = target;
-      const cfg = modalCfg[target];
-      document.getElementById('modal-title').textContent = cfg.title;
-      document.getElementById('modal-desc').textContent  = cfg.desc;
-      const inp = document.getElementById('modal-input');
-      inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step;
-      inp.value = state[cfg.stateKey];
-      document.getElementById('modal-overlay').classList.add('open');
-      setTimeout(() => { inp.focus(); inp.select(); }, 60);
-    }
-    function closeModal() {
-      document.getElementById('modal-overlay').classList.remove('open');
-      modalTarget = null;
-    }
-    function confirmModal() {
-      if (!modalTarget) return;
-      const cfg = modalCfg[modalTarget];
-      let val = parseFloat(document.getElementById('modal-input').value);
-      if (isNaN(val)) { closeModal(); return; }
-      val = Math.max(cfg.min, val);
-      state[cfg.stateKey] = val;
-      cfg.slid().value = Math.max(cfg.slidMin, Math.min(cfg.slidMax, val));
-      closeModal(); updateUI(); updateChart(); saveState();
-    }
-
-    document.getElementById('modal-overlay').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeModal();
+      priceElec: {
+        title: tR.modalTitlePriceElec, desc: tR.modalDescPriceElec,
+        min: 0.01, max: 50, step: 0.01,
+        getValue: () => state.priceElec,
+        onConfirm: (val) => {
+          state.priceElec = val;
+          slPriceElec.value = Math.max(0.05, Math.min(1.1, val));
+          updateUI(); updateChart(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-    document.getElementById('modal-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') confirmModal();
-    });
-    document.getElementById('btn-ok').addEventListener('click', confirmModal);
-    document.getElementById('btn-cancel').addEventListener('click', closeModal);
 
     // ═══════════════════════════════════════════════════════════════
     // Event listeners
     // ═══════════════════════════════════════════════════════════════
     [slBattery, slKwh, slSocStart, slSocEnd,
-     slSpeedCity, slSpeedExtra, slSpeedAuto].forEach(sl => {
-      sl.addEventListener('input', updateUI);
-      sl.addEventListener('change', () => { updateChart(); saveState(); });
-    });
+      slSpeedCity, slSpeedExtra, slSpeedAuto, slPriceElec].forEach(sl => {
+        sl.addEventListener('input', updateUI);
+        sl.addEventListener('change', () => { updateChart(); VT.saveState(STORAGE_KEY, state); });
+      });
 
     // ═══════════════════════════════════════════════════════════════
     // Init
     // ═══════════════════════════════════════════════════════════════
-    slBattery.value    = Math.max(10, Math.min(120, state.battery));
-    slKwh.value        = Math.max(8,  Math.min(35,  state.kwh100));
-    slSocStart.value   = Math.max(1,  Math.min(100, state.socStart));
-    slSocEnd.value     = Math.max(0,  Math.min(50,  state.socEnd));
-    slSpeedCity.value  = Math.max(8,  Math.min(35,  state.speedCity));
-    slSpeedExtra.value = Math.max(8,  Math.min(35,  state.speedExtra));
-    slSpeedAuto.value  = Math.max(8,  Math.min(35,  state.speedAuto));
+    slBattery.value = Math.max(10, Math.min(120, state.battery));
+    slKwh.value = Math.max(8, Math.min(35, state.kwh100));
+    slSocStart.value = Math.max(1, Math.min(100, state.socStart));
+    slSocEnd.value = Math.max(0, Math.min(50, state.socEnd));
+    slSpeedCity.value = Math.max(8, Math.min(35, state.speedCity));
+    slSpeedExtra.value = Math.max(8, Math.min(35, state.speedExtra));
+    slSpeedAuto.value = Math.max(8, Math.min(35, state.speedAuto));
+    slPriceElec.value = Math.max(0.05, Math.min(1.1, state.priceElec));
 
-    applyAccordion('soc', state.optSoc);
+    VT.applyAccordion('soc', state.optSoc);
+    VT.applyAccordion('cost', state.optCost);
     setMode(state.mode);
 
   </script>

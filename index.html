@@ -152,6 +152,7 @@
   <!-- i18n deve stare prima di nav.js e del resto -->
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/nav.js"></script>
+  <script src="assets/js/common.js"></script>
   <script>
     // ═══════════════════════════════════════════════════════════════
     // Applica testi i18n statici
@@ -188,19 +189,21 @@
     // ═══════════════════════════════════════════════════════════════
     // Intl formatting
     // ═══════════════════════════════════════════════════════════════
-    const fmtP3 = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-    const fmtP1 = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 });
+    const fmtP3 = VT.fmt.p3;
+    const fmtP1 = VT.fmt.p1;
+    const fmtInt = VT.fmt.int;
 
     // ═══════════════════════════════════════════════════════════════
-    // State + localStorage
+    // State + localStorage (shared)
     // ═══════════════════════════════════════════════════════════════
     const STORAGE_KEY = 'volttool_v4';
     const defaults = { kml: 17, kwh100: 16, realFuel: 1.65, realElec: 0.30, kmAnno: 15000 };
-    function loadState() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) return { ...defaults, ...JSON.parse(r) }; } catch (e) { } return { ...defaults }; }
-    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { } }
 
-    const state = loadState();
+    const state = VT.loadState(STORAGE_KEY, defaults);
+    VT.registerAppState(state, () => {
+      updateUI();
+      VT.saveState(STORAGE_KEY, state);
+    });
 
     // ═══════════════════════════════════════════════════════════════
     // DOM refs
@@ -212,14 +215,9 @@
     const slRealElec = document.getElementById('sl-realelec');
 
     // ═══════════════════════════════════════════════════════════════
-    // Slider fill
+    // Slider fill (shared)
     // ═══════════════════════════════════════════════════════════════
-    function updateTrack(el) {
-      const item = el.closest('.slider-item');
-      if (item && item.style.display === 'none') return;
-      const pct = (parseFloat(el.value) - parseFloat(el.min)) / (parseFloat(el.max) - parseFloat(el.min)) * 100;
-      el.style.setProperty('--pct', pct + '%');
-    }
+    const updateTrack = VT.updateTrack;
 
     // ═══════════════════════════════════════════════════════════════
     // updateUI
@@ -270,75 +268,82 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Preset popup
+    // Preset popup (shared)
     // ═══════════════════════════════════════════════════════════════
-    let activePopup = null;
-    function togglePopup(popupId, btn) {
-      const popup = document.getElementById(popupId);
-      if (activePopup && activePopup !== popup) activePopup.classList.remove('open');
-      if (popup.classList.contains('open')) { popup.classList.remove('open'); activePopup = null; return; }
-      const rect = btn.getBoundingClientRect();
-      popup.style.top = (rect.bottom + 6) + 'px';
-      popup.style.left = rect.left + 'px';
-      popup.classList.add('open');
-      activePopup = popup;
-    }
-    function applyPreset(field, value) {
+    window.applyPresetHandler = (field, value) => {
       if (field === 'kml') { state.kml = value; slKml.value = Math.max(4, Math.min(30, value)); }
       if (field === 'kwh') { state.kwh100 = value; slKwh.value = Math.max(8, Math.min(35, value)); }
-      if (activePopup) { activePopup.classList.remove('open'); activePopup = null; }
-      updateUI(); saveState();
-    }
-    document.addEventListener('click', e => {
-      if (activePopup && !activePopup.contains(e.target) && !e.target.classList.contains('preset-btn')) {
-        activePopup.classList.remove('open'); activePopup = null;
-      }
-    });
+      updateUI();
+      VT.saveState(STORAGE_KEY, state);
+    };
 
     // ═══════════════════════════════════════════════════════════════
-    // Modal
+    // Modal (shared)
     // ═══════════════════════════════════════════════════════════════
-    let modalTarget = null;
-    const modalCfg = {
-      kml: { title: () => t.modalTitleKml, desc: () => t.modalDescKml, min: 1, max: 200, step: 0.1, stateKey: 'kml', slid: () => slKml, slidMin: 4, slidMax: 30 },
-      kwh: { title: () => t.modalTitleKwh, desc: () => t.modalDescKwh, min: 1, max: 200, step: 0.1, stateKey: 'kwh100', slid: () => slKwh, slidMin: 8, slidMax: 35 },
-      kmanno: { title: () => t.modalTitleKmanno, desc: () => t.modalDescKmanno, min: 1000, max: 500000, step: 1000, stateKey: 'kmAnno', slid: () => slKmAnno, slidMin: 5000, slidMax: 50000 },
-      realfuel: { title: () => t.modalTitleRFuel, desc: () => t.modalDescRFuel, min: 0.001, max: 50, step: 0.001, stateKey: 'realFuel', slid: () => slRealFuel, slidMin: 0.5, slidMax: 3.5 },
-      realelec: { title: () => t.modalTitleRElec, desc: () => t.modalDescRElec, min: 0.001, max: 50, step: 0.001, stateKey: 'realElec', slid: () => slRealElec, slidMin: 0.05, slidMax: 0.8 },
-    };
-    function openModal(target) {
-      modalTarget = target;
-      const cfg = modalCfg[target];
-      document.getElementById('modal-title').textContent = cfg.title();
-      document.getElementById('modal-desc').textContent = cfg.desc();
-      const inp = document.getElementById('modal-input');
-      inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step; inp.value = state[cfg.stateKey];
-      document.getElementById('modal-overlay').classList.add('open');
-      setTimeout(() => { inp.focus(); inp.select(); }, 60);
-    }
-    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); modalTarget = null; }
-    function confirmModal() {
-      if (!modalTarget) return;
-      const cfg = modalCfg[modalTarget];
-      let val = parseFloat(document.getElementById('modal-input').value);
-      if (isNaN(val)) { closeModal(); return; }
-      val = Math.max(cfg.min, val);
-      state[cfg.stateKey] = val;
-      cfg.slid().value = Math.max(cfg.slidMin, Math.min(cfg.slidMax, val));
-      closeModal(); updateUI(); saveState();
-    }
-    document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-    document.getElementById('modal-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmModal(); });
-    document.getElementById('btn-ok').addEventListener('click', confirmModal);
-    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+    VT.setModalConfig({
+      kml: {
+        title: () => t.modalTitleKml,
+        desc:  () => t.modalDescKml,
+        min: 1, max: 200, step: 0.1,
+        getValue: () => state.kml,
+        onConfirm: (val) => {
+          state.kml = val;
+          slKml.value = Math.max(4, Math.min(30, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      kwh: {
+        title: () => t.modalTitleKwh,
+        desc:  () => t.modalDescKwh,
+        min: 1, max: 200, step: 0.1,
+        getValue: () => state.kwh100,
+        onConfirm: (val) => {
+          state.kwh100 = val;
+          slKwh.value = Math.max(8, Math.min(35, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      kmanno: {
+        title: () => t.modalTitleKmanno,
+        desc:  () => t.modalDescKmanno,
+        min: 1000, max: 500000, step: 1000,
+        getValue: () => state.kmAnno,
+        onConfirm: (val) => {
+          state.kmAnno = val;
+          slKmAnno.value = Math.max(5000, Math.min(50000, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      realfuel: {
+        title: () => t.modalTitleRFuel,
+        desc:  () => t.modalDescRFuel,
+        min: 0.001, max: 50, step: 0.001,
+        getValue: () => state.realFuel,
+        onConfirm: (val) => {
+          state.realFuel = val;
+          slRealFuel.value = Math.max(0.5, Math.min(3.5, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      realelec: {
+        title: () => t.modalTitleRElec,
+        desc:  () => t.modalDescRElec,
+        min: 0.001, max: 50, step: 0.001,
+        getValue: () => state.realElec,
+        onConfirm: (val) => {
+          state.realElec = val;
+          slRealElec.value = Math.max(0.05, Math.min(0.8, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      }
+    });
 
     // ═══════════════════════════════════════════════════════════════
     // Event listeners + Init
     // ═══════════════════════════════════════════════════════════════
     [slKml, slKwh, slKmAnno, slRealFuel, slRealElec].forEach(sl => {
       sl.addEventListener('input', updateUI);
-      sl.addEventListener('change', () => { saveState(); });
+      sl.addEventListener('change', () => { VT.saveState(STORAGE_KEY, state); });
     });
 
     slKml.value = Math.max(4, Math.min(30, state.kml));
@@ -348,7 +353,7 @@
     slRealElec.value = Math.max(0.05, Math.min(0.8, state.realElec));
 
     updateUI();
-    saveState();
+    VT.saveState(STORAGE_KEY, state);
   </script>
 </body>
 

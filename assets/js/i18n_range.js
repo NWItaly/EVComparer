@@ -30,6 +30,7 @@ const STRINGS_RANGE = {
     slSpeedAuto:  '🛤️ Autostrada',
     slSocStart:   'Carica attuale',
     slSocEnd:     'Riserva minima',
+    slPriceElec:  '💶 Prezzo energia',
 
     /* preset battery */
     presetBat40: 'Compatta',
@@ -37,13 +38,15 @@ const STRINGS_RANGE = {
     presetBat80: 'SUV',
 
     /* accordion */
-    chkSocLabel: 'Carica attuale e riserva',
+    chkSocLabel:  'Carica attuale e riserva',
+    chkCostLabel: 'Costo ricarica',
 
     /* soc window note */
     socWindowNote: (pct, kwh) => `Finestra: <span>${pct} %</span> — ${kwh} kWh`,
 
     /* mini result */
-    miniSocLabel: 'kWh disponibili',
+    miniSocLabel:  'kWh disponibili',
+    miniCostLabel: 'Costo ricarica',
 
     /* result box — medio */
     rbMedioLabel: 'Autonomia stimata',
@@ -85,6 +88,8 @@ const STRINGS_RANGE = {
     modalDescSpeedExtra:  'Consumo stimato su strade extraurbane (kWh/100 km).',
     modalTitleSpeedAuto:  'Consumo in autostrada',
     modalDescSpeedAuto:   'Consumo stimato in autostrada (kWh/100 km).',
+    modalTitlePriceElec:  'Prezzo energia',
+    modalDescPriceElec:   'Prezzo dell\'energia elettrica in €/kWh.',
     btnOk:     'OK',
     btnCancel: 'Annulla',
 
@@ -117,6 +122,7 @@ const STRINGS_RANGE = {
     slSpeedAuto:  '🛤️ Motorway',
     slSocStart:   'Current charge',
     slSocEnd:     'Minimum reserve',
+    slPriceElec:  '💶 Energy price',
 
     /* preset battery */
     presetBat40: 'Compact',
@@ -124,13 +130,15 @@ const STRINGS_RANGE = {
     presetBat80: 'SUV',
 
     /* accordion */
-    chkSocLabel: 'Current charge and reserve',
+    chkSocLabel:  'Current charge and reserve',
+    chkCostLabel: 'Charging cost',
 
     /* soc window note */
     socWindowNote: (pct, kwh) => `Window: <span>${pct} %</span> — ${kwh} kWh`,
 
     /* mini result */
-    miniSocLabel: 'Available kWh',
+    miniSocLabel:  'Available kWh',
+    miniCostLabel: 'Charging cost',
 
     /* result box — medio */
     rbMedioLabel: 'Estimated range',
@@ -172,6 +180,8 @@ const STRINGS_RANGE = {
     modalDescSpeedExtra:  'Estimated consumption on extra-urban roads (kWh/100 km).',
     modalTitleSpeedAuto:  'Motorway consumption',
     modalDescSpeedAuto:   'Estimated consumption on motorways (kWh/100 km).',
+    modalTitlePriceElec:  'Energy price',
+    modalDescPriceElec:   'Electricity price in €/kWh.',
     btnOk:     'OK',
     btnCancel: 'Cancel',
 

@@ -8,140 +8,7 @@
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/shared.css">
   <script src="assets/js/chart.umd.min.js"></script>
-  <style>
-    /* ── tipo alimentazione ── */
-    .phase-group {
-      display: flex;
-      gap: 6px;
-    }
-    .phase-btn {
-      flex: 1;
-      padding: 9px 6px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.74rem;
-      cursor: pointer;
-      transition: border-color .15s, background .15s, color .15s;
-      text-align: center;
-      line-height: 1.4;
-    }
-    .phase-btn:hover { border-color: var(--muted); color: var(--text); }
-    .phase-btn.active {
-      border-color: var(--elec);
-      background: rgba(79, 195, 247, .10);
-      color: var(--elec);
-    }
-    .phase-btn .phase-sub {
-      display: block;
-      font-size: .62rem;
-      opacity: .65;
-    }
-
-    /* ── result box variante elec ── */
-    .result-box.charging {
-      background: rgba(79, 195, 247, .07);
-      border: 1px solid rgba(79, 195, 247, .25);
-    }
-    .rb-label.elec { color: var(--elec); }
-    .rb-main.elec  { color: var(--elec); }
-
-    /* ── accordion ── */
-    .accordion-item { display: flex; flex-direction: column; }
-
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      font-size: 0.82rem;
-      color: var(--muted);
-      user-select: none;
-    }
-    .check-item:hover { border-color: var(--muted); color: var(--text); }
-    .check-item.active {
-      border-color: var(--elec);
-      background: rgba(79, 195, 247, .08);
-      color: var(--text);
-      border-radius: 8px 8px 0 0;
-      border-bottom-color: transparent;
-    }
-    .chk-box {
-      width: 15px; height: 15px;
-      border-radius: 4px;
-      border: 2px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color .15s, background .15s;
-      font-size: 0.65rem;
-      color: transparent;
-    }
-    .check-item.active .chk-box {
-      border-color: var(--elec);
-      background: var(--elec);
-      color: #0e0f11;
-    }
-    .acc-panel {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height .28s ease, padding .28s ease;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      background: var(--surface2);
-    }
-    .acc-panel.open { max-height: 700px; padding: 14px; }
-    .acc-panel .slider-group { gap: 14px; }
-
-    /* mini result dentro uso reale */
-    .mini-result {
-      background: rgba(79,195,247,.06);
-      border: 1px solid rgba(79,195,247,.2);
-      border-radius: 6px;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-    .mini-result-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    .mini-result-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--elec);
-    }
-
-    /* curva note */
-    .curve-note {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    /* cap info grafico */
-    .chart-cap-info {
-      font-family: 'DM Mono', monospace;
-      font-size: .68rem;
-      color: var(--muted);
-      text-align: right;
-    }
-  </style>
+  <script src="assets/js/common.js"></script>
 </head>
 
 <body>
@@ -401,43 +268,41 @@
     // Applica testi i18n statici
     // ═══════════════════════════════════════════════════════════════
     document.title = t.pageTitle;
-    document.getElementById('sec-phase').textContent      = tC.secPhase;
-    document.getElementById('sec-power').textContent      = tC.secPower;
-    document.getElementById('sec-mode').textContent       = tC.secMode;
-    document.getElementById('sec-options').textContent    = tC.secOptions;
-    document.getElementById('ph-mono-label').textContent  = tC.phMono;
-    document.getElementById('ph-mono-sub').textContent    = tC.phMonoSub;
-    document.getElementById('ph-tri-label').textContent   = tC.phTri;
-    document.getElementById('ph-tri-sub').textContent     = tC.phTriSub;
-    document.getElementById('ph-dc-label').textContent    = tC.phDc;
-    document.getElementById('ph-dc-sub').textContent      = tC.phDcSub;
+    document.getElementById('sec-phase').textContent = tC.secPhase;
+    document.getElementById('sec-power').textContent = tC.secPower;
+    document.getElementById('sec-mode').textContent = tC.secMode;
+    document.getElementById('sec-options').textContent = tC.secOptions;
+    document.getElementById('ph-mono-label').textContent = tC.phMono;
+    document.getElementById('ph-mono-sub').textContent = tC.phMonoSub;
+    document.getElementById('ph-tri-label').textContent = tC.phTri;
+    document.getElementById('ph-tri-sub').textContent = tC.phTriSub;
+    document.getElementById('ph-dc-label').textContent = tC.phDc;
+    document.getElementById('ph-dc-sub').textContent = tC.phDcSub;
     document.getElementById('mode-time-label').textContent = tC.modeTimeBtn;
-    document.getElementById('mode-kwh-label').textContent  = tC.modeKwhBtn;
-    document.getElementById('sl-label-time').textContent       = tC.slTime;
-    document.getElementById('sl-label-kwh').textContent        = tC.slKwh;
-    document.getElementById('sl-label-capacity').textContent   = tC.slCapacity;
-    document.getElementById('sl-label-soc-start').textContent  = tC.slSocStart;
-    document.getElementById('sl-label-soc-end').textContent    = tC.slSocEnd;
-    document.getElementById('sl-label-loss').textContent       = tC.slLoss;
+    document.getElementById('mode-kwh-label').textContent = tC.modeKwhBtn;
+    document.getElementById('sl-label-time').textContent = tC.slTime;
+    document.getElementById('sl-label-kwh').textContent = tC.slKwh;
+    document.getElementById('sl-label-capacity').textContent = tC.slCapacity;
+    document.getElementById('sl-label-soc-start').textContent = tC.slSocStart;
+    document.getElementById('sl-label-soc-end').textContent = tC.slSocEnd;
+    document.getElementById('sl-label-loss').textContent = tC.slLoss;
     document.getElementById('sl-label-curve-thresh').textContent = tC.slCurveThresh;
-    document.getElementById('sl-label-curve-end').textContent   = tC.slCurveEnd;
-    document.getElementById('chk-real-label').textContent   = tC.chkRealLabel;
-    document.getElementById('chk-curve-label').textContent  = tC.chkCurveLabel;
-    document.getElementById('chk-loss-label').textContent   = tC.chkLossLabel;
-    document.getElementById('mini-real-label').textContent  = tC.miniRealLabel;
-    document.getElementById('chart-title').textContent      = tC.chartTitle;
-    document.getElementById('btn-ok').textContent           = tC.btnOk;
-    document.getElementById('btn-cancel').textContent       = tC.btnCancel;
+    document.getElementById('sl-label-curve-end').textContent = tC.slCurveEnd;
+    document.getElementById('chk-real-label').textContent = tC.chkRealLabel;
+    document.getElementById('chk-curve-label').textContent = tC.chkCurveLabel;
+    document.getElementById('chk-loss-label').textContent = tC.chkLossLabel;
+    document.getElementById('mini-real-label').textContent = tC.miniRealLabel;
+    document.getElementById('chart-title').textContent = tC.chartTitle;
+    document.getElementById('btn-ok').textContent = tC.btnOk;
+    document.getElementById('btn-cancel').textContent = tC.btnCancel;
 
     // ═══════════════════════════════════════════════════════════════
-    // Intl formatting
+    // Intl formatting (shared)
     // ═══════════════════════════════════════════════════════════════
-    const fmtP1  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const fmtP2  = new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const fmtInt = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 });
+    const { p1: fmtP1, p2: fmtP2, int: fmtInt } = VT.fmt;
 
     // ═══════════════════════════════════════════════════════════════
-    // State + localStorage
+    // State + localStorage (shared)
     // ═══════════════════════════════════════════════════════════════
     const STORAGE_KEY = 'volttool_charging_v2';
     const defaults = {
@@ -447,25 +312,26 @@
       capacity: 60, socStart: 20, socEnd: 80,
       loss: 5, curveThresh: 80, curveEnd: 30,
     };
-    function loadState() {
-      try { const r = localStorage.getItem(STORAGE_KEY); if (r) return { ...defaults, ...JSON.parse(r) }; } catch (e) {}
-      return { ...defaults };
-    }
-    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
-    const state = loadState();
+
+    const state = VT.loadState(STORAGE_KEY, defaults);
+    VT.registerAppState(state, () => {
+      updateUI();
+      scheduleChartUpdate();
+      VT.saveState(STORAGE_KEY, state);
+    });
 
     // ═══════════════════════════════════════════════════════════════
     // DOM refs
     // ═══════════════════════════════════════════════════════════════
-    const slPower      = document.getElementById('sl-power');
-    const slTime       = document.getElementById('sl-time');
-    const slKwh        = document.getElementById('sl-kwh');
-    const slCapacity   = document.getElementById('sl-capacity');
-    const slSocStart   = document.getElementById('sl-soc-start');
-    const slSocEnd     = document.getElementById('sl-soc-end');
-    const slLoss       = document.getElementById('sl-loss');
-    const slCurveThresh= document.getElementById('sl-curve-thresh');
-    const slCurveEnd   = document.getElementById('sl-curve-end');
+    const slPower = document.getElementById('sl-power');
+    const slTime = document.getElementById('sl-time');
+    const slKwh = document.getElementById('sl-kwh');
+    const slCapacity = document.getElementById('sl-capacity');
+    const slSocStart = document.getElementById('sl-soc-start');
+    const slSocEnd = document.getElementById('sl-soc-end');
+    const slLoss = document.getElementById('sl-loss');
+    const slCurveThresh = document.getElementById('sl-curve-thresh');
+    const slCurveEnd = document.getElementById('sl-curve-end');
 
     // ═══════════════════════════════════════════════════════════════
     // Helpers
@@ -482,8 +348,8 @@
     // ═══════════════════════════════════════════════════════════════
     const CHART_POWERS = {
       mono: [1.84, 3.68, 7.36, 11.04],  // 8A 16A 32A mono + 16A tri
-      tri:  [2.77, 5.54, 11.07, 22.15], // 4A 8A 16A 32A tri
-      dc:   [50, 100, 150, 250],
+      tri: [2.77, 5.54, 11.07, 22.15], // 4A 8A 16A 32A tri
+      dc: [50, 100, 150, 250],
     };
     const COMPARE_COLORS = ['#4a5568', '#6b7280', '#94a3b8', '#a0aec0'];
     const SELECTED_COLOR = '#4fc3f7';
@@ -510,8 +376,10 @@
         scales: {
           x: {
             type: 'linear',
-            ticks: { color: '#6b7080', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 8,
-                     callback: v => tC.fmtMin(v) },
+            ticks: {
+              color: '#6b7080', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 8,
+              callback: v => tC.fmtMin(v)
+            },
             grid: { color: '#1e2127' },
             title: { display: true, text: tC.axisTime, color: '#6b7080', font: { family: 'DM Mono', size: 11 } }
           },
@@ -551,7 +419,7 @@
       max = max || 300;
       if (pts.length <= max) return pts;
       const step = Math.ceil(pts.length / max);
-      return pts.filter(function(_, i) { return i % step === 0 || i === pts.length - 1; });
+      return pts.filter(function (_, i) { return i % step === 0 || i === pts.length - 1; });
     }
 
     function grossKwhForPower(kw) {
@@ -576,14 +444,9 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Slider fill
+    // Slider fill (shared)
     // ═══════════════════════════════════════════════════════════════
-    function updateTrack(el) {
-      const item = el.closest('.slider-item');
-      if (item && item.style.display === 'none') return;
-      const pct = (parseFloat(el.value) - parseFloat(el.min)) / (parseFloat(el.max) - parseFloat(el.min)) * 100;
-      el.style.setProperty('--pct', pct + '%');
-    }
+    const updateTrack = VT.updateTrack;
 
     // ═══════════════════════════════════════════════════════════════
     // updateUI  — reattivo (ogni input slider)
@@ -592,27 +455,27 @@
     function updateUI() {
       // Leggi slider
       if (state.phase === 'dc') state.powerDc = parseFloat(slPower.value);
-      else                      state.amps    = parseFloat(slPower.value);
+      else state.amps = parseFloat(slPower.value);
       if (state.mode === 'time') state.time = parseFloat(slTime.value);
-      if (state.mode === 'kwh')  state.kwh  = parseFloat(slKwh.value);
+      if (state.mode === 'kwh') state.kwh = parseFloat(slKwh.value);
       if (state.optReal) {
         state.capacity = parseFloat(slCapacity.value);
         state.socStart = parseFloat(slSocStart.value);
-        state.socEnd   = parseFloat(slSocEnd.value);
+        state.socEnd = parseFloat(slSocEnd.value);
         if (state.socEnd <= state.socStart) {
           state.socEnd = state.socStart + 1;
           slSocEnd.value = state.socEnd;
         }
       }
-      if (state.optLoss)  state.loss        = parseFloat(slLoss.value);
+      if (state.optLoss) state.loss = parseFloat(slLoss.value);
       if (state.optCurve) {
         state.curveThresh = parseFloat(slCurveThresh.value);
-        state.curveEnd    = parseFloat(slCurveEnd.value);
+        state.curveEnd = parseFloat(slCurveEnd.value);
       }
 
       // Track fill
       [slPower, slTime, slKwh, slCapacity, slSocStart, slSocEnd,
-       slLoss, slCurveThresh, slCurveEnd].forEach(updateTrack);
+        slLoss, slCurveThresh, slCurveEnd].forEach(updateTrack);
 
       const kw = currentPowerKw();
 
@@ -623,13 +486,13 @@
 
       // Display input
       document.getElementById('time-display').textContent = tC.fmtMin(state.time);
-      document.getElementById('kwh-display').textContent  = fmtP1.format(state.kwh) + ' kWh';
+      document.getElementById('kwh-display').textContent = fmtP1.format(state.kwh) + ' kWh';
 
       // Display uso reale
       if (state.optReal) {
-        document.getElementById('capacity-display').textContent  = fmtP1.format(state.capacity) + ' kWh';
+        document.getElementById('capacity-display').textContent = fmtP1.format(state.capacity) + ' kWh';
         document.getElementById('soc-start-display').textContent = fmtInt.format(state.socStart) + '%';
-        document.getElementById('soc-end-display').textContent   = fmtInt.format(state.socEnd) + '%';
+        document.getElementById('soc-end-display').textContent = fmtInt.format(state.socEnd) + '%';
         const delta = Math.max(0, (state.socEnd - state.socStart) / 100 * state.capacity);
         document.getElementById('real-kwh-value').textContent = fmtP2.format(delta) + ' kWh';
       }
@@ -637,7 +500,7 @@
         document.getElementById('loss-display').textContent = fmtInt.format(state.loss) + '%';
       if (state.optCurve) {
         document.getElementById('curve-thresh-display').textContent = fmtInt.format(state.curveThresh) + '%';
-        document.getElementById('curve-end-display').textContent    = fmtInt.format(state.curveEnd) + '%';
+        document.getElementById('curve-end-display').textContent = fmtInt.format(state.curveEnd) + '%';
         document.getElementById('curve-note-text').textContent = tC.curveNote(state.curveThresh, state.curveEnd);
       }
 
@@ -685,10 +548,10 @@
       const kw = currentPowerKw();
       const comparePowers = CHART_POWERS[state.phase];
       const useCurve = state.optCurve && state.optReal && state.phase === 'dc';
-      const tension  = useCurve ? 0.2 : 0;
+      const tension = useCurve ? 0.2 : 0;
       const datasets = [];
 
-      comparePowers.forEach(function(pw, i) {
+      comparePowers.forEach(function (pw, i) {
         if (Math.abs(pw - kw) < 0.5) return;
         const pts = sample(ptsForPower(pw));
         const label = state.phase !== 'dc'
@@ -703,7 +566,7 @@
         });
       });
 
-      const selPts  = sample(ptsForPower(kw));
+      const selPts = sample(ptsForPower(kw));
       const selLabel = state.phase === 'dc'
         ? tC.dsLabelDC(fmtP1.format(kw))
         : tC.dsLabelAC(fmtInt.format(state.amps), fmtP2.format(kw));
@@ -712,7 +575,7 @@
         label: selLabel, data: selPts,
         borderColor: SELECTED_COLOR, backgroundColor: 'rgba(79,195,247,.07)',
         borderWidth: 2.5, tension: tension, fill: true,
-        pointRadius: selPts.map(function(_, i) { return i === selPts.length - 1 ? 6 : 0; }),
+        pointRadius: selPts.map(function (_, i) { return i === selPts.length - 1 ? 6 : 0; }),
         pointBackgroundColor: SELECTED_COLOR, pointBorderColor: '#0e0f11', pointBorderWidth: 2,
       });
 
@@ -728,17 +591,11 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Accordion
+    // Accordion (shared)
     // ═══════════════════════════════════════════════════════════════
-    function applyAccordion(opt, active) {
-      document.getElementById('chk-' + opt).classList.toggle('active', active);
-      document.getElementById('panel-' + opt).classList.toggle('open', active);
-    }
+    const applyAccordion = VT.applyAccordion;
     function toggleOption(opt) {
-      const key = 'opt' + opt.charAt(0).toUpperCase() + opt.slice(1);
-      state[key] = !state[key];
-      applyAccordion(opt, state[key]);
-      updateUI(); updateChart(); saveState();
+      VT.toggleOption(opt);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -746,7 +603,7 @@
     // ═══════════════════════════════════════════════════════════════
     function setPhase(ph) {
       state.phase = ph;
-      ['mono', 'tri', 'dc'].forEach(function(p) {
+      ['mono', 'tri', 'dc'].forEach(function (p) {
         document.getElementById('ph-' + p).classList.toggle('active', p === ph);
       });
       if (ph === 'dc') {
@@ -761,8 +618,8 @@
         document.getElementById('curve-wrapper').style.display = 'none';
         if (state.optCurve) { state.optCurve = false; applyAccordion('curve', false); }
       }
-      updateTrack(slPower);
-      updateUI(); updateChart(); saveState();
+      VT.updateTrack(slPower);
+      updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -771,98 +628,91 @@
     function setMode(m) {
       state.mode = m;
       document.getElementById('mode-time').className = 'mode-btn' + (m === 'time' ? ' active-elec' : '');
-      document.getElementById('mode-kwh').className  = 'mode-btn' + (m === 'kwh'  ? ' active-elec' : '');
+      document.getElementById('mode-kwh').className = 'mode-btn' + (m === 'kwh' ? ' active-elec' : '');
       document.getElementById('item-time').style.display = m === 'time' ? '' : 'none';
-      document.getElementById('item-kwh').style.display  = m === 'kwh'  ? '' : 'none';
-      document.getElementById('sec-input').textContent   = m === 'time' ? tC.secInputTime : tC.secInputKwh;
-      document.getElementById('guide-text').innerHTML    = m === 'time' ? tC.guideTime    : tC.guideKwh;
-      updateUI(); updateChart(); saveState();
+      document.getElementById('item-kwh').style.display = m === 'kwh' ? '' : 'none';
+      document.getElementById('sec-input').textContent = m === 'time' ? tC.secInputTime : tC.secInputKwh;
+      document.getElementById('guide-text').innerHTML = m === 'time' ? tC.guideTime : tC.guideKwh;
+      updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Modal
+    // Modal (shared)
     // ═══════════════════════════════════════════════════════════════
-    let modalTarget = null;
-    const modalCfg = {
+    VT.setModalConfig({
       power: {
-        title: function() { return state.phase === 'dc' ? tC.modalTitlePowerDC : tC.modalTitlePowerAC; },
-        desc:  function() { return state.phase === 'dc' ? tC.modalDescPowerDC  : tC.modalDescPowerAC;  },
+        title: () => state.phase === 'dc' ? tC.modalTitlePowerDC : tC.modalTitlePowerAC,
+        desc: () => state.phase === 'dc' ? tC.modalDescPowerDC : tC.modalDescPowerAC,
         min: 1, max: 350, step: 1,
-        stateKey: function() { return state.phase === 'dc' ? 'powerDc' : 'amps'; },
-        slid: function() { return slPower; },
-        slidMin: function() { return state.phase === 'dc' ? 7 : 6; },
-        slidMax: function() { return state.phase === 'dc' ? 350 : 32; },
+        getValue: () => (state.phase === 'dc' ? state.powerDc : state.amps),
+        onConfirm: (val) => {
+          if (state.phase === 'dc') state.powerDc = val;
+          else state.amps = val;
+          const clamped = Math.max(state.phase === 'dc' ? 7 : 6, Math.min(state.phase === 'dc' ? 350 : 32, val));
+          slPower.value = clamped;
+          updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       time: {
-        title: function() { return tC.modalTitleTime; }, desc: function() { return tC.modalDescTime; },
+        title: () => tC.modalTitleTime,
+        desc: () => tC.modalDescTime,
         min: 1, max: 14400, step: 1,
-        stateKey: function() { return 'time'; }, slid: function() { return slTime; }, slidMin: function() { return 5; }, slidMax: function() { return 720; },
+        getValue: () => state.time,
+        onConfirm: (val) => {
+          state.time = val;
+          slTime.value = Math.max(5, Math.min(720, val));
+          updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       kwh: {
-        title: function() { return tC.modalTitleKwh; }, desc: function() { return tC.modalDescKwh; },
+        title: () => tC.modalTitleKwh,
+        desc: () => tC.modalDescKwh,
         min: 0.1, max: 300, step: 0.5,
-        stateKey: function() { return 'kwh'; }, slid: function() { return slKwh; }, slidMin: function() { return 1; }, slidMax: function() { return 100; },
+        getValue: () => state.kwh,
+        onConfirm: (val) => {
+          state.kwh = val;
+          slKwh.value = Math.max(1, Math.min(100, val));
+          updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
+        }
       },
       capacity: {
-        title: function() { return tC.modalTitleCap; }, desc: function() { return tC.modalDescCap; },
+        title: () => tC.modalTitleCap,
+        desc: () => tC.modalDescCap,
         min: 5, max: 300, step: 1,
-        stateKey: function() { return 'capacity'; }, slid: function() { return slCapacity; }, slidMin: function() { return 10; }, slidMax: function() { return 120; },
-      },
-    };
-
-    function openModal(target) {
-      modalTarget = target;
-      const cfg = modalCfg[target];
-      document.getElementById('modal-title').textContent = cfg.title();
-      document.getElementById('modal-desc').textContent  = cfg.desc();
-      const inp = document.getElementById('modal-input');
-      inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step;
-      inp.value = state[cfg.stateKey()];
-      document.getElementById('modal-overlay').classList.add('open');
-      setTimeout(function() { inp.focus(); inp.select(); }, 60);
-    }
-    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); modalTarget = null; }
-    function confirmModal() {
-      if (!modalTarget) return;
-      const cfg = modalCfg[modalTarget];
-      let val = parseFloat(document.getElementById('modal-input').value);
-      if (isNaN(val)) { closeModal(); return; }
-      val = Math.max(cfg.min, val);
-      state[cfg.stateKey()] = val;
-      cfg.slid().value = Math.max(cfg.slidMin(), Math.min(cfg.slidMax(), val));
-      closeModal(); updateUI(); updateChart(); saveState();
-    }
-    document.getElementById('modal-overlay').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeModal(); });
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
-    document.getElementById('modal-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmModal(); });
-    document.getElementById('btn-ok').addEventListener('click', confirmModal);
-    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+        getValue: () => state.capacity,
+        onConfirm: (val) => {
+          state.capacity = val;
+          slCapacity.value = Math.max(10, Math.min(120, val));
+          updateUI(); scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state);
+        }
+      }
+    });
 
     // ═══════════════════════════════════════════════════════════════
     // Event listeners slider — updateUI su input, chart su change
     // ═══════════════════════════════════════════════════════════════
     [slPower, slTime, slKwh, slCapacity, slSocStart, slSocEnd,
-     slLoss, slCurveThresh, slCurveEnd].forEach(function(sl) {
-      sl.addEventListener('input', updateUI);
-      sl.addEventListener('change', function() { updateChart(); saveState(); });
-    });
+      slLoss, slCurveThresh, slCurveEnd].forEach(function (sl) {
+        sl.addEventListener('input', updateUI);
+        sl.addEventListener('change', function () { scheduleChartUpdate(); VT.saveState(STORAGE_KEY, state); });
+      });
 
     // ═══════════════════════════════════════════════════════════════
     // Init
     // ═══════════════════════════════════════════════════════════════
-    ['real', 'loss', 'curve'].forEach(function(opt) {
+    ['real', 'loss', 'curve'].forEach(function (opt) {
       const key = 'opt' + opt.charAt(0).toUpperCase() + opt.slice(1);
       applyAccordion(opt, state[key]);
     });
 
-    slTime.value        = Math.max(5,   Math.min(720,  state.time));
-    slKwh.value         = Math.max(1,   Math.min(100,  state.kwh));
-    slCapacity.value    = Math.max(10,  Math.min(120,  state.capacity));
-    slSocStart.value    = Math.max(0,   Math.min(99,   state.socStart));
-    slSocEnd.value      = Math.max(1,   Math.min(100,  state.socEnd));
-    slLoss.value        = Math.max(1,   Math.min(10,   state.loss));
-    slCurveThresh.value = Math.max(50,  Math.min(95,   state.curveThresh));
-    slCurveEnd.value    = Math.max(5,   Math.min(70,   state.curveEnd));
+    slTime.value = Math.max(5, Math.min(720, state.time));
+    slKwh.value = Math.max(1, Math.min(100, state.kwh));
+    slCapacity.value = Math.max(10, Math.min(120, state.capacity));
+    slSocStart.value = Math.max(0, Math.min(99, state.socStart));
+    slSocEnd.value = Math.max(1, Math.min(100, state.socEnd));
+    slLoss.value = Math.max(1, Math.min(10, state.loss));
+    slCurveThresh.value = Math.max(50, Math.min(95, state.curveThresh));
+    slCurveEnd.value = Math.max(5, Math.min(70, state.curveEnd));
 
     setPhase(state.phase);
     setMode(state.mode);
