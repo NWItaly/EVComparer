@@ -1080,3 +1080,53 @@ input[type=range].soc::-webkit-slider-runnable-track {
   border-radius: 6px;
   padding: 4px 10px;
 }
+
+/* ─── SHARE BUTTON ───────────────────────────────────────────── */
+.nav-share {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color .15s, background .15s;
+  flex-shrink: 0;
+}
+
+.nav-share:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.nav-share-toast {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  color: var(--cross);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.nav-share-toast.visible {
+  display: block;
+  animation: toast-fade 2s ease forwards;
+}
+
+@keyframes toast-fade {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}

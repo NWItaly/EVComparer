@@ -14,7 +14,7 @@
         p1: new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
         p2: new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         p3: new Intl.NumberFormat(navigator.language, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
-        int: new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0 }),
+        int: new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 0, useGrouping: true }),
     };
 
     function loadState(storageKey, defaults) {

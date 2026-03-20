@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title></title>
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/shared.css">
+  <script src="assets/js/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- Nav iniettata da nav.js -->
+
+  <!-- MODAL numerica -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc"></p>
+      <input type="number" id="modal-input" step="any" />
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-cancel"></button>
+        <button class="btn btn-primary" id="btn-ok"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESET POPUP — capacità batteria -->
+  <div class="preset-popup" id="popup-battery">
+    <div class="preset-card" id="pc-bat-30">
+      <span class="pc-icon">🛵</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">30 kWh</span>
+    </div>
+    <div class="preset-card" id="pc-bat-50">
+      <span class="pc-icon">🚗</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">50 kWh</span>
+    </div>
+    <div class="preset-card" id="pc-bat-77">
+      <span class="pc-icon">🚙</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">77 kWh</span>
+    </div>
+    <div class="preset-card" id="pc-bat-100">
+      <span class="pc-icon">🚀</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">100 kWh</span>
+    </div>
+  </div>
+
+  <!-- PRESET POPUP — consumo -->
+  <div class="preset-popup" id="popup-kwh">
+    <div class="preset-card" id="pc-kwh-city">
+      <span class="pc-icon">🏙️</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">12 kWh/100</span>
+    </div>
+    <div class="preset-card" id="pc-kwh-extra">
+      <span class="pc-icon">🛣️</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">16 kWh/100</span>
+    </div>
+    <div class="preset-card" id="pc-kwh-auto">
+      <span class="pc-icon">🛤️</span>
+      <span class="pc-label"></span>
+      <span class="pc-value elec-color">20 kWh/100</span>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+
+    <!-- ═══════════════════════════ PANEL SINISTRO ═══════════════════════════ -->
+    <div class="panel">
+
+      <!-- 1. GUIDA -->
+      <div class="guide-box elec-accent">
+        <p id="guide-text"></p>
+      </div>
+
+      <!-- 2. CAPACITÀ INIZIALE -->
+      <div>
+        <div class="section-label" id="sec-battery-label"></div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name elec-color">
+                <span id="sl-label-battery"></span>
+                <div class="preset-wrapper">
+                  <button class="preset-btn" onclick="togglePopup('popup-battery', this)">▾ preset</button>
+                </div>
+              </span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="battery-display">—</span>
+                <button class="edit-btn" onclick="openModal('battery')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="elec" id="sl-battery" min="20" max="120" step="1" value="60">
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 3. PARAMETRI DEGRADO -->
+      <div>
+        <div class="section-label" id="sec-degrado-label"></div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-header">
+              <span class="slider-name" style="color:var(--save)">
+                <span id="sl-label-degrado"></span>
+              </span>
+              <div class="slider-value-wrap">
+                <span class="slider-value" id="degrado-display">—</span>
+                <button class="edit-btn" onclick="openModal('degrado')">✏</button>
+              </div>
+            </div>
+            <input type="range" class="save" id="sl-degrado" min="0.5" max="5" step="0.1" value="2">
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 4. OPZIONI AVANZATE -->
+      <div>
+        <div class="section-label" id="sec-options-label"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+
+          <!-- ── Consumo medio ── -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-consumo" onclick="toggleMutex('consumo')">
+              <span class="chk-box">✓</span>
+              <span id="chk-consumo-label"></span>
+            </div>
+            <div class="acc-panel" id="panel-consumo">
+              <div class="slider-group">
+
+                <!-- consumo kWh/100km — display mostra entrambe le unità come in index.html -->
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name elec-color">
+                      <span id="sl-label-kwh"></span>
+                      <div class="preset-wrapper">
+                        <button class="preset-btn" onclick="togglePopup('popup-kwh', this)">▾ preset</button>
+                      </div>
+                    </span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="kwh-display">—</span>
+                      <button class="edit-btn" onclick="openModal('kwh')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="elec" id="sl-kwh" min="8" max="35" step="0.5" value="16">
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Soglia allerta ── -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-threshold" onclick="toggleMutex('threshold')">
+              <span class="chk-box">✓</span>
+              <span id="chk-threshold-label"></span>
+            </div>
+            <div class="acc-panel" id="panel-threshold">
+              <div class="slider-group">
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name" style="color:#f87171;">
+                      <span id="sl-label-threshold"></span>
+                    </span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="threshold-display">—</span>
+                      <button class="edit-btn" onclick="openModal('threshold')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="neutral" id="sl-threshold" min="60" max="90" step="5" value="80">
+                </div>
+                <div class="mini-result" style="flex-direction:column;align-items:flex-start;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;">
+                    <span class="mini-result-label" id="thresh-lin-label"></span>
+                    <span class="mini-result-value" id="thresh-lin-value" style="color:#f87171;">—</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;width:100%;">
+                    <span class="mini-result-label" id="thresh-exp-label"></span>
+                    <span class="mini-result-value" id="thresh-exp-value" style="color:#f87171;">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── ROI sostituzione ── -->
+          <div class="accordion-item">
+            <div class="check-item" id="chk-roi" onclick="toggleOption('roi')">
+              <span class="chk-box">✓</span>
+              <span id="chk-roi-label"></span>
+            </div>
+            <div class="acc-panel" id="panel-roi">
+              <div class="slider-group">
+                <!-- km annui -->
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name neutral-color">
+                      <span id="sl-label-kmanno"></span>
+                    </span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="kmanno-display">—</span>
+                      <button class="edit-btn" onclick="openModal('kmanno')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="neutral" id="sl-kmanno" min="5000" max="50000" step="1000" value="15000">
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span class="slider-name" style="color:var(--fuel);">
+                      <span id="sl-label-battcost"></span>
+                    </span>
+                    <div class="slider-value-wrap">
+                      <span class="slider-value" id="battcost-display">—</span>
+                      <button class="edit-btn" onclick="openModal('battcost')">✏</button>
+                    </div>
+                  </div>
+                  <input type="range" class="fuel" id="sl-battcost" min="50" max="300" step="10" value="120">
+                </div>
+                <div class="result-box range">
+                  <div class="rb-rows">
+                    <div class="rb-row">
+                      <span class="rb-row-label" id="roi-cost-label"></span>
+                      <span class="rb-row-value" style="color:var(--fuel);" id="roi-cost-value">—</span>
+                    </div>
+                    <hr class="rb-row-divider">
+                    <div class="rb-row">
+                      <span class="rb-row-label" id="roi-years-label"></span>
+                      <span class="rb-row-value" style="color:var(--cross);" id="roi-years-value">—</span>
+                    </div>
+                    <hr class="rb-row-divider">
+                    <div class="rb-note" id="roi-desc"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- 5. RESULT BOXES -->
+      <div class="rb-rows">
+
+        <div class="result-box range">
+          <div class="rb-rows">
+            <div class="rb-row">
+              <span class="rb-row-label" id="rb-cap-y10-label"></span>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                <span class="rb-row-value" id="rb-cap-y10-lin" style="color:var(--elec);">—</span>
+                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--cross);" id="rb-cap-y10-exp">—</span>
+              </div>
+            </div>
+            <hr class="rb-row-divider">
+            <div class="rb-row">
+              <span class="rb-row-label" id="rb-cap-y20-label"></span>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                <span class="rb-row-value" id="rb-cap-y20-lin" style="color:var(--elec);">—</span>
+                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--cross);" id="rb-cap-y20-exp">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- km persi — solo se consumo attivo -->
+        <div class="result-box range" id="rb-km-lost-box" style="display:none;">
+          <div class="rb-label elec" id="rb-km-lost-label"></div>
+          <div class="rb-main elec" id="rb-km-lost-value">—</div>
+          <div class="rb-note" id="rb-km-lost-note"></div>
+        </div>
+
+      </div>
+
+      <!-- nota modello -->
+      <div class="curve-note" id="model-note"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════ CHART PANEL ═══════════════════════════ -->
+    <div class="chart-panel">
+
+      <div>
+        <div class="chart-title" id="chart-title"></div>
+        <div class="chart-subtitle" id="chart-subtitle">—</div>
+      </div>
+
+      <!-- Grafico kWh (default) / km (quando consumo medio è attivo) -->
+      <div class="chart-container" id="chart-kwh-wrap" style="min-height:380px;">
+        <canvas id="chartKwh"></canvas>
+      </div>
+      <div class="chart-container" id="chart-km-wrap" style="min-height:380px;display:none;">
+        <canvas id="chartKm"></canvas>
+      </div>
+
+      <!-- legenda -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
+        <span style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--elec);" id="legend-linear"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--cross);" id="legend-exp"></span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/i18n_battery.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script>
+
+    // ═══════════════════════════════════════════════════════════════
+    // i18n statici
+    // ═══════════════════════════════════════════════════════════════
+    document.title                                              = tB.pageTitle;
+    document.getElementById('btn-ok').textContent              = tB.btnOk;
+    document.getElementById('btn-cancel').textContent          = tB.btnCancel;
+    document.getElementById('guide-text').innerHTML            = tB.guide;
+    document.getElementById('sec-battery-label').textContent   = tB.secBattery;
+    document.getElementById('sec-degrado-label').textContent   = tB.secDegrado;
+    document.getElementById('sec-options-label').textContent   = tB.secOptions;
+    document.getElementById('sl-label-battery').textContent    = tB.slBattery;
+    document.getElementById('sl-label-degrado').textContent    = tB.slDegrado;
+    document.getElementById('sl-label-kwh').textContent        = tB.slKwh;
+    document.getElementById('sl-label-kmanno').textContent     = tB.slKmAnno;
+    document.getElementById('sl-label-threshold').textContent  = tB.slThreshold;
+    document.getElementById('sl-label-battcost').textContent   = tB.slBattCost;
+    document.getElementById('chk-consumo-label').textContent   = tB.chkConsumoLabel;
+    document.getElementById('chk-threshold-label').textContent = tB.chkThresholdLabel;
+    document.getElementById('chk-roi-label').textContent       = tB.chkRoiLabel;
+    document.getElementById('rb-cap-y10-label').textContent    = tB.rbCapY10Label;
+    document.getElementById('rb-cap-y20-label').textContent    = tB.rbCapY20Label;
+    document.getElementById('rb-km-lost-label').textContent    = tB.rbKmLostLabel;
+    document.getElementById('thresh-lin-label').textContent    = tB.rbLinLabel;
+    document.getElementById('thresh-exp-label').textContent    = tB.rbExpLabel;
+    document.getElementById('roi-cost-label').textContent      = tB.rbRoiCost;
+    document.getElementById('roi-years-label').textContent     = tB.rbRoiYears;
+    document.getElementById('chart-title').textContent         = tB.chartTitle;
+    document.getElementById('model-note').textContent          = tB.expModelNote;
+    document.getElementById('legend-linear').textContent       = tB.legendLinear;
+    document.getElementById('legend-exp').textContent          = tB.legendExp;
+
+    document.querySelector('#pc-bat-30  .pc-label').textContent = tB.presetBat30;
+    document.querySelector('#pc-bat-50  .pc-label').textContent = tB.presetBat50;
+    document.querySelector('#pc-bat-77  .pc-label').textContent = tB.presetBat77;
+    document.querySelector('#pc-bat-100 .pc-label').textContent = tB.presetBat100;
+    document.querySelector('#pc-kwh-city  .pc-label').textContent = t.presetKwhCity;
+    document.querySelector('#pc-kwh-extra .pc-label').textContent = t.presetKwhExtra;
+    document.querySelector('#pc-kwh-auto  .pc-label').textContent = t.presetKwhAuto;
+
+    // ═══════════════════════════════════════════════════════════════
+    // Formatters
+    // ═══════════════════════════════════════════════════════════════
+    const { p1: fmtP1, p2: fmtP2, int: fmtInt } = VT.fmt;
+
+    // ═══════════════════════════════════════════════════════════════
+    // State + localStorage
+    // ═══════════════════════════════════════════════════════════════
+    const STORAGE_KEY = 'volttool_battery_v1';
+    const defaults = {
+      battery:      60,
+      degrado:      2.0,
+      kwh100:       16,
+      kmAnno:       15000,
+      optConsumo:   false,
+      optThreshold: false,
+      threshold:    80,
+      optRoi:       false,
+      battcost:     120,
+    };
+
+    const state = VT.loadState(STORAGE_KEY, defaults);
+    VT.registerAppState(state, () => {
+      updateUI();
+      updateCharts();
+      VT.saveState(STORAGE_KEY, state);
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // DOM refs
+    // ═══════════════════════════════════════════════════════════════
+    const slBattery   = document.getElementById('sl-battery');
+    const slDegrado   = document.getElementById('sl-degrado');
+    const slKwh       = document.getElementById('sl-kwh');
+    const slKmAnno    = document.getElementById('sl-kmanno');
+    const slThreshold = document.getElementById('sl-threshold');
+    const slBattcost  = document.getElementById('sl-battcost');
+
+    // ═══════════════════════════════════════════════════════════════
+    // Modelli degrado
+    // ═══════════════════════════════════════════════════════════════
+    const YEARS = Array.from({ length: 21 }, (_, i) => i); // 0..20
+
+    function capLinear(cap, rate, y) {
+      return Math.max(0, cap * (1 - rate * y));
+    }
+
+    function capExp(cap, rate, y) {
+      return cap * Math.pow(1 - rate, y);
+    }
+
+    function kmFromKwh(kwh) {
+      const c = state.kwh100;
+      return c > 0 ? (kwh / c) * 100 : 0;
+    }
+
+    function yearBelowThreshold(cap, rate, modelFn, pct) {
+      for (let y = 1; y <= 20; y++) {
+        if (modelFn(cap, rate, y) / cap * 100 < pct) return y;
+      }
+      return null;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Grafico attivo: kWh di default, km se consumo è attivo
+    // ═══════════════════════════════════════════════════════════════
+    function switchChart() {
+      const showKm = state.optConsumo;
+      document.getElementById('chart-kwh-wrap').style.display = showKm ? 'none' : '';
+      document.getElementById('chart-km-wrap').style.display  = showKm ? ''     : 'none';
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Mutex: consumo e soglia si escludono a vicenda
+    // ═══════════════════════════════════════════════════════════════
+    function toggleMutex(opt) {
+      if (opt === 'consumo') {
+        state.optConsumo = !state.optConsumo;
+        if (state.optConsumo && state.optThreshold) {
+          state.optThreshold = false;
+          VT.applyAccordion('threshold', false);
+        }
+      } else if (opt === 'threshold') {
+        state.optThreshold = !state.optThreshold;
+        if (state.optThreshold && state.optConsumo) {
+          state.optConsumo = false;
+          VT.applyAccordion('consumo', false);
+        }
+      }
+      VT.applyAccordion(opt, opt === 'consumo' ? state.optConsumo : state.optThreshold);
+      switchChart();
+      updateUI();
+      updateCharts();
+      VT.saveState(STORAGE_KEY, state);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // updateUI
+    // ═══════════════════════════════════════════════════════════════
+    function updateUI() {
+      state.battery   = parseFloat(slBattery.value);
+      state.degrado   = parseFloat(slDegrado.value);
+      state.kwh100    = parseFloat(slKwh.value);
+      state.kmAnno    = parseFloat(slKmAnno.value);
+      state.threshold = parseFloat(slThreshold.value);
+      state.battcost  = parseFloat(slBattcost.value);
+
+      [slBattery, slDegrado, slKwh, slKmAnno, slThreshold, slBattcost].forEach(VT.updateTrack);
+
+      const rate = state.degrado / 100;
+
+      // Displays — consumo mostra entrambe le unità (come index.html)
+      document.getElementById('battery-display').textContent =
+        `${fmtInt.format(state.battery)} kWh`;
+      document.getElementById('degrado-display').textContent =
+        `${fmtP1.format(state.degrado)} %/anno`;
+      document.getElementById('kwh-display').textContent =
+        `${fmtP1.format(state.kwh100)} ${t.unitKwhKm} | ${fmtP1.format(100 / state.kwh100)} ${t.unitKmKwh}`;
+      document.getElementById('kmanno-display').textContent =
+        `${fmtInt.format(state.kmAnno)} km`;
+      document.getElementById('threshold-display').textContent =
+        `${fmtInt.format(state.threshold)} %`;
+      document.getElementById('battcost-display').textContent =
+        `${fmtInt.format(state.battcost)} €/kWh`;
+
+      document.getElementById('chart-subtitle').textContent =
+        tB.chartSubtitle(fmtInt.format(state.battery), fmtP1.format(state.degrado));
+
+      // Result capacità Y10 / Y20
+      const linY10 = capLinear(state.battery, rate, 10);
+      const expY10 = capExp(state.battery, rate, 10);
+      const linY20 = capLinear(state.battery, rate, 20);
+      const expY20 = capExp(state.battery, rate, 20);
+
+      document.getElementById('rb-cap-y10-lin').textContent =
+        `${tB.rbLinLabel}: ${fmtP1.format(linY10)} kWh (${fmtInt.format(linY10 / state.battery * 100)}%)`;
+      document.getElementById('rb-cap-y10-exp').textContent =
+        `${tB.rbExpLabel}: ${fmtP1.format(expY10)} kWh (${fmtInt.format(expY10 / state.battery * 100)}%)`;
+      document.getElementById('rb-cap-y20-lin').textContent =
+        `${tB.rbLinLabel}: ${fmtP1.format(linY20)} kWh (${fmtInt.format(linY20 / state.battery * 100)}%)`;
+      document.getElementById('rb-cap-y20-exp').textContent =
+        `${tB.rbExpLabel}: ${fmtP1.format(expY20)} kWh (${fmtInt.format(expY20 / state.battery * 100)}%)`;
+
+      // Km persi (solo se consumo attivo)
+      const rbKmBox = document.getElementById('rb-km-lost-box');
+      rbKmBox.style.display = state.optConsumo ? '' : 'none';
+      if (state.optConsumo) {
+        const km0     = Math.round(kmFromKwh(state.battery));
+        const kmExp20 = Math.round(kmFromKwh(expY20));
+        const diff    = km0 - kmExp20;
+        document.getElementById('rb-km-lost-value').textContent = `−${fmtInt.format(diff)} km`;
+        document.getElementById('rb-km-lost-note').textContent  =
+          tB.kmLostNote(fmtInt.format(km0), fmtInt.format(kmExp20), fmtInt.format(diff));
+      }
+
+      // Soglia
+      if (state.optThreshold) {
+        const pct  = state.threshold;
+        const yLin = yearBelowThreshold(state.battery, rate, capLinear, pct);
+        const yExp = yearBelowThreshold(state.battery, rate, capExp, pct);
+        const linKwh = yLin ? fmtP1.format(capLinear(state.battery, rate, yLin)) : '—';
+        const expKwh = yExp ? fmtP1.format(capExp(state.battery, rate, yExp))    : '—';
+        document.getElementById('thresh-lin-value').textContent =
+          yLin ? tB.rbThreshLinear(yLin, linKwh) : tB.rbThreshNever;
+        document.getElementById('thresh-exp-value').textContent =
+          yExp ? tB.rbThreshExp(yExp, expKwh)    : tB.rbThreshNever;
+      }
+
+      // ROI
+      if (state.optRoi) {
+        const replaceCost   = state.battery * state.battcost;
+        const ENERGY_PRICE  = 0.25; // €/kWh — prezzo energia di riferimento per il ROI
+        const annualEnergy  = (state.kwh100 / 100) * state.kmAnno;
+        const annualCost    = annualEnergy * ENERGY_PRICE;
+        const roiYears      = replaceCost / annualCost;
+
+        document.getElementById('roi-cost-value').textContent  = `${fmtInt.format(replaceCost)} €`;
+        document.getElementById('roi-years-value').textContent = `${fmtP1.format(roiYears)} anni`;
+        document.getElementById('roi-desc').textContent =
+          tB.rbRoiDesc(
+            fmtInt.format(state.battery),
+            fmtInt.format(state.battcost),
+            fmtInt.format(replaceCost),
+            fmtInt.format(state.kmAnno),
+            fmtP1.format(state.kwh100),
+            fmtP2.format(ENERGY_PRICE)
+          ) + ` ${fmtP1.format(roiYears)} anni.`;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Chart helpers — configurazione comune
+    // ═══════════════════════════════════════════════════════════════
+    const CHART_COMMON_OPTIONS = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 200 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#9aa0b0',
+            font: { family: 'DM Mono', size: 11 },
+            boxWidth: 12,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1e2127',
+          borderColor: '#2a2d35',
+          borderWidth: 1,
+          titleColor: '#e8eaf0',
+          bodyColor: '#9aa0b0',
+          titleFont: { family: 'DM Mono', size: 11 },
+          bodyFont:  { family: 'DM Mono', size: 11 },
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: 0, max: 20,
+          ticks: {
+            color: '#6b7080',
+            font: { family: 'DM Mono', size: 10 },
+            stepSize: 2,
+            callback: v => String(v),
+          },
+          grid: { color: '#1e2127' },
+          title: {
+            display: true,
+            text: tB.axisAnni,
+            color: '#6b7080',
+            font: { family: 'DM Mono', size: 11 }
+          }
+        }
+      }
+    };
+
+    // ─── Grafico kWh ─────────────────────────────────────────────
+    const chartKwh = new Chart(document.getElementById('chartKwh').getContext('2d'), {
+      type: 'line',
+      data: { datasets: [] },
+      options: {
+        ...CHART_COMMON_OPTIONS,
+        plugins: {
+          ...CHART_COMMON_OPTIONS.plugins,
+          tooltip: {
+            ...CHART_COMMON_OPTIONS.plugins.tooltip,
+            callbacks: {
+              title: items => tB.tooltipYear(items[0].parsed.x),
+              label: c => c.parsed.y != null
+                ? ` ${c.dataset.label}: ${fmtP1.format(c.parsed.y)} kWh (${fmtInt.format(c.parsed.y / state.battery * 100)}%)`
+                : ''
+            }
+          }
+        },
+        scales: {
+          x: CHART_COMMON_OPTIONS.scales.x,
+          y: {
+            ticks: {
+              color: '#4fc3f7',
+              font: { family: 'DM Mono', size: 10 },
+              callback: v => `${fmtInt.format(v)} kWh`,
+            },
+            grid: { color: '#2a2d35' },
+            title: {
+              display: true,
+              text: tB.axisKwh,
+              color: '#4fc3f7',
+              font: { family: 'DM Mono', size: 11 }
+            }
+          }
+        }
+      }
+    });
+
+    // ─── Grafico km ──────────────────────────────────────────────
+    const chartKm = new Chart(document.getElementById('chartKm').getContext('2d'), {
+      type: 'line',
+      data: { datasets: [] },
+      options: {
+        ...CHART_COMMON_OPTIONS,
+        plugins: {
+          ...CHART_COMMON_OPTIONS.plugins,
+          tooltip: {
+            ...CHART_COMMON_OPTIONS.plugins.tooltip,
+            callbacks: {
+              title: items => tB.tooltipYear(items[0].parsed.x),
+              label: c => c.parsed.y != null
+                ? ` ${c.dataset.label}: ${fmtInt.format(Math.round(c.parsed.y))} km`
+                : ''
+            }
+          }
+        },
+        scales: {
+          x: CHART_COMMON_OPTIONS.scales.x,
+          y: {
+            ticks: {
+              color: '#a8e6a3',
+              font: { family: 'DM Mono', size: 10 },
+              callback: v => `${fmtInt.format(v)} km`,
+            },
+            grid: { color: '#2a2d35' },
+            title: {
+              display: true,
+              text: tB.axisKm,
+              color: '#a8e6a3',
+              font: { family: 'DM Mono', size: 11 }
+            }
+          }
+        }
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // updateCharts
+    // ═══════════════════════════════════════════════════════════════
+    function updateCharts() {
+      const cap  = state.battery;
+      const rate = state.degrado / 100;
+
+      const linKwh = YEARS.map(y => ({ x: y, y: capLinear(cap, rate, y) }));
+      const expKwh = YEARS.map(y => ({ x: y, y: capExp(cap, rate, y) }));
+
+      // ── kWh chart datasets ──
+      const datasetsKwh = [
+        {
+          label: tB.dsLinear,
+          data: linKwh,
+          borderColor: '#4fc3f7',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5, tension: 0.3,
+          pointRadius: 3, pointBackgroundColor: '#4fc3f7',
+          fill: false,
+        },
+        {
+          label: tB.dsExp,
+          data: expKwh,
+          borderColor: '#a8e6a3',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5, tension: 0.3,
+          pointRadius: 3, pointBackgroundColor: '#a8e6a3',
+          fill: false,
+        },
+      ];
+
+      if (state.optThreshold) {
+        const threshKwh = cap * (state.threshold / 100);
+        datasetsKwh.push({
+          label: tB.dsThreshold(state.threshold),
+          data: [{ x: 0, y: threshKwh }, { x: 20, y: threshKwh }],
+          borderColor: 'rgba(248,113,113,.7)',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5, borderDash: [4, 3],
+          tension: 0, pointRadius: 0, fill: false,
+        });
+      }
+
+      chartKwh.data.datasets = datasetsKwh;
+      chartKwh.options.scales.y.max = cap * 1.05;
+      chartKwh.update();
+
+      // ── km chart datasets (solo se consumo attivo) ──
+      if (state.optConsumo) {
+        const linKm = YEARS.map(y => ({ x: y, y: kmFromKwh(capLinear(cap, rate, y)) }));
+        const expKm = YEARS.map(y => ({ x: y, y: kmFromKwh(capExp(cap, rate, y)) }));
+
+        const datasetsKm = [
+          {
+            label: tB.dsLinear,
+            data: linKm,
+            borderColor: '#4fc3f7',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5, tension: 0.3,
+            pointRadius: 3, pointBackgroundColor: '#4fc3f7',
+            fill: false,
+          },
+          {
+            label: tB.dsExp,
+            data: expKm,
+            borderColor: '#a8e6a3',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5, tension: 0.3,
+            pointRadius: 3, pointBackgroundColor: '#a8e6a3',
+            fill: false,
+          },
+        ];
+        chartKm.data.datasets = datasetsKm;
+        chartKm.options.scales.y.max = kmFromKwh(cap) * 1.05;
+        chartKm.update();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Preset handler
+    // ═══════════════════════════════════════════════════════════════
+    window.applyPresetHandler = (field, value) => {
+      if (field === 'battery') {
+        state.battery = value;
+        slBattery.value = Math.max(20, Math.min(120, value));
+      }
+      if (field === 'kwh') {
+        state.kwh100 = value;
+        slKwh.value = Math.max(8, Math.min(35, value));
+      }
+      updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+    };
+
+    document.getElementById('pc-bat-30').onclick  = () => applyPreset('battery', 30);
+    document.getElementById('pc-bat-50').onclick  = () => applyPreset('battery', 50);
+    document.getElementById('pc-bat-77').onclick  = () => applyPreset('battery', 77);
+    document.getElementById('pc-bat-100').onclick = () => applyPreset('battery', 100);
+    document.getElementById('pc-kwh-city').onclick  = () => applyPreset('kwh', 12);
+    document.getElementById('pc-kwh-extra').onclick = () => applyPreset('kwh', 16);
+    document.getElementById('pc-kwh-auto').onclick  = () => applyPreset('kwh', 20);
+
+    // ═══════════════════════════════════════════════════════════════
+    // Modal config
+    // ═══════════════════════════════════════════════════════════════
+    VT.setModalConfig({
+      battery: {
+        title: tB.modalTitleBattery, desc: tB.modalDescBattery,
+        min: 5, max: 300, step: 1,
+        getValue: () => state.battery,
+        onConfirm: (val) => {
+          state.battery = val;
+          slBattery.value = Math.max(20, Math.min(120, val));
+          updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      degrado: {
+        title: tB.modalTitleDegrado, desc: tB.modalDescDegrado,
+        min: 0.1, max: 20, step: 0.1,
+        getValue: () => state.degrado,
+        onConfirm: (val) => {
+          state.degrado = val;
+          slDegrado.value = Math.max(0.5, Math.min(5, val));
+          updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      kwh: {
+        title: tB.modalTitleKwh, desc: tB.modalDescKwh,
+        min: 1, max: 200, step: 0.1,
+        getValue: () => state.kwh100,
+        onConfirm: (val) => {
+          state.kwh100 = val;
+          slKwh.value = Math.max(8, Math.min(35, val));
+          updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      kmanno: {
+        title: tB.modalTitleKmAnno, desc: tB.modalDescKmAnno,
+        min: 1000, max: 500000, step: 1000,
+        getValue: () => state.kmAnno,
+        onConfirm: (val) => {
+          state.kmAnno = val;
+          slKmAnno.value = Math.max(5000, Math.min(50000, val));
+          updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      threshold: {
+        title: tB.modalTitleThreshold, desc: tB.modalDescThreshold,
+        min: 50, max: 95, step: 1,
+        getValue: () => state.threshold,
+        onConfirm: (val) => {
+          state.threshold = val;
+          slThreshold.value = Math.max(60, Math.min(90, val));
+          updateUI(); updateCharts(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+      battcost: {
+        title: tB.modalTitleBattCost, desc: tB.modalDescBattCost,
+        min: 10, max: 1000, step: 10,
+        getValue: () => state.battcost,
+        onConfirm: (val) => {
+          state.battcost = val;
+          slBattcost.value = Math.max(50, Math.min(300, val));
+          updateUI(); VT.saveState(STORAGE_KEY, state);
+        }
+      },
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Event listeners
+    // ═══════════════════════════════════════════════════════════════
+    [slBattery, slDegrado, slKwh, slKmAnno, slThreshold, slBattcost].forEach(sl => {
+      sl.addEventListener('input', updateUI);
+      sl.addEventListener('change', () => { updateCharts(); VT.saveState(STORAGE_KEY, state); });
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Init
+    // ═══════════════════════════════════════════════════════════════
+    slBattery.value   = Math.max(20,   Math.min(120,   state.battery));
+    slDegrado.value   = Math.max(0.5,  Math.min(5,     state.degrado));
+    slKwh.value       = Math.max(8,    Math.min(35,    state.kwh100));
+    slKmAnno.value    = Math.max(5000, Math.min(50000, state.kmAnno));
+    slThreshold.value = Math.max(60,   Math.min(90,    state.threshold));
+    slBattcost.value  = Math.max(50,   Math.min(300,   state.battcost));
+
+    VT.applyAccordion('consumo',   state.optConsumo);
+    VT.applyAccordion('threshold', state.optThreshold);
+    VT.applyAccordion('roi',       state.optRoi);
+
+    switchChart();
+    updateUI();
+    updateCharts();
+
+  </script>
+</body>
+
+</html>

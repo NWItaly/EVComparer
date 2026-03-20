@@ -11,7 +11,11 @@ const STRINGS = {
     navBreakeven: 'EV o termica?',
     navCharging: 'Tempo ed energia',
     navRange: 'Ansia da autonomia',
+    navBattery: 'Degrado',
     navPrivacy: 'Informativa sulla privacy',
+
+    navShare:       'Condividi',      // it
+    navShareCopied: 'Link copiato!',  // it
 
     /* guide */
     guideFree: '<strong>Confronto diretto:</strong> imposta entrambi i prezzi reali che paghi e scopri quale motorizzazione conviene di più.',
@@ -101,7 +105,11 @@ const STRINGS = {
     navBreakeven: 'EV or ICE?',
     navCharging: 'Time and energy',
     navRange: 'Anxiety over range',
+    navBattery: 'Degrade',
     navPrivacy: 'Privacy policy',
+
+    navShare:       'Share',          // en
+    navShareCopied: 'Link copied!',   // en
 
     /* guide */
     guideFree: '<strong>Direct comparison:</strong> set both real prices you pay and see which option saves you more money.',
