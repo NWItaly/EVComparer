@@ -39,6 +39,18 @@ Data la potenza di ricarica, calcola l'energia o il tempo necessario alla ricari
   - Curva decresente → stima una curva di ricarica (solo DC)
   - Perdita di ricarica → stima una perdita di energia
 
+### `battery.html` — Degrado della batteria
+Stima come cambia la capacità della batteria nel tempo e quanti km si perdono anno dopo anno.
+
+- Capacità iniziale della batteria (20–120 kWh) con preset per tipologia di veicolo
+- Percentuale di degrado annuo (0,5–5%)
+- Due modelli di degrado a confronto sul grafico: lineare e esponenziale (più realistico)
+- Risultati a 10 e 20 anni per entrambi i modelli
+- Funzionalità aggiuntive:
+  - Consumo medio → aggiunge il grafico dell'autonomia in km e mostra i km persi a 20 anni
+  - Soglia di allerta → evidenzia sul grafico l'anno in cui la batteria scende sotto la % impostata
+  - Sostituzione batteria & ROI → stima il costo di sostituzione e gli anni necessari per ammortizzarlo
+
 ### `range.html` — Ansia da autonomia
 Data la capienza della batteria, calcola quanti km si possono percorrere.
 - Due modalità di calcolo:
@@ -57,6 +69,7 @@ Data la capienza della batteria, calcola quanti km si possono percorrere.
 ├── breakeven.html    # Calcolatore punto di pareggio
 ├── charging.html     # Calcolatore per la ricarica
 ├── range.html        # Calcolatore per i km disponibili
+├── battery.html      # Calcolatore per il degrado della batteria
 ├── privacy.html      # Policy privacy
 └── assets            # Risorse esterne alle pagine
     ├── css           # Fogli di stile condivisi tra le pagine
